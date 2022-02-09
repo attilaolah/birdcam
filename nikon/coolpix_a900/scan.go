@@ -12,6 +12,7 @@ import (
 
 	"github.com/go-ble/ble"
 	"github.com/go-ble/ble/linux"
+	"tinygo.org/x/bluetooth"
 )
 
 // LocalName advertised by this camera model.
@@ -20,10 +21,10 @@ const CamName = "A900"
 var (
 	// Standard BLE characteristics.
 	// These are available in https://pkg.go.dev/tinygo.org/x/bluetooth.
-	ManufacturerNameString = ble.NewCharacteristic(ble.UUID16(0x2A29))
-	ModelNumberString      = ble.NewCharacteristic(ble.UUID16(0x2A24))
-	SoftwareRevisionString = ble.NewCharacteristic(ble.UUID16(0x2A28))
-	FirmwareRevisionString = ble.NewCharacteristic(ble.UUID16(0x2A26))
+	ManufacturerNameString = ble.NewCharacteristic(ble.UUID16(bluetooth.CharacteristicUUIDManufacturerNameString.Get16Bit()))
+	ModelNumberString      = ble.NewCharacteristic(ble.UUID16(bluetooth.CharacteristicUUIDModelNumberString.Get16Bit()))
+	SoftwareRevisionString = ble.NewCharacteristic(ble.UUID16(bluetooth.CharacteristicUUIDSoftwareRevisionString.Get16Bit()))
+	FirmwareRevisionString = ble.NewCharacteristic(ble.UUID16(bluetooth.CharacteristicUUIDFirmwareRevisionString.Get16Bit()))
 
 	// COOLPIX A900 vendor-specific stuff.
 	// These are mostly reverse-engineered, so take them with a grain of salt.
