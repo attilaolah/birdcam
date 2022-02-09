@@ -81,7 +81,6 @@ type DeviceInformation struct {
 type A900 struct {
 	ble.Client
 
-	DeviceInformation
 	TxPower int
 }
 
@@ -103,50 +102,39 @@ func Connect(ctx context.Context) (cam *A900, err error) {
 		return nil, fmt.Errorf("failed to connect to camera: %w", err)
 	}
 
-	defer func() {
-		if err == nil {
-			return
-		}
-		// Something went wrong, close the connection:
-		if cerr := cli.CancelConnection(); cerr != nil {
-			err = fmt.Errorf("%w; failed to close connection: %w", err, cerr)
-		}
-	}()
-
-	info := DeviceInformation{}
-	if info.ManufacturerName, err = ReadCharacteristic(cli, ManufacturerNameString); err != nil {
-		err = fmt.Errorf("failed to read manufacturer name: %w", err)
-		return
-	}
-	if info.ModelNumber, err = ReadCharacteristic(cli, ModelNumberString); err != nil {
-		err = fmt.Errorf("failed to read model number: %w", err)
-		return
-	}
-	if info.SoftwareRevision, err = ReadCharacteristic(cli, SoftwareRevisionString); err != nil {
-		err = fmt.Errorf("failed to read software revision: %w", err)
-		return
-	}
-	if info.FirmwareRevision, err = ReadCharacteristic(cli, FirmwareRevisionString); err != nil {
-		err = fmt.Errorf("failed to read firmware revision: %w", err)
-		return
-	}
-	if info.SerialNumber, err = ReadCharacteristic(cli, LSSSerialNumberString); err != nil {
-		err = fmt.Errorf("failed to read serial number: %w", err)
-		return
-	}
-
 	return &A900{
-		Client:            cli,
-		DeviceInformation: info,
-		TxPower:           txp,
+		Client:  cli,
+		TxPower: txp,
 	}, nil
 }
 
-func ReadCharacteristic(cli ble.Client, c *ble.Characteristic) (string, error) {
-	p := cli.Profile()
+func (cam *A900) DeviceInformation() (*DeviceInformation, error) {
+	var err error
+	info := DeviceInformation{}
+	if info.ManufacturerName, err = cam.ReadString(ManufacturerNameString); err != nil {
+		return nil, fmt.Errorf("failed to read manufacturer name: %w", err)
+	}
+	if info.ModelNumber, err = cam.ReadString(ModelNumberString); err != nil {
+		return nil, fmt.Errorf("failed to read model number: %w", err)
+	}
+	if info.SoftwareRevision, err = cam.ReadString(SoftwareRevisionString); err != nil {
+		return nil, fmt.Errorf("failed to read software revision: %w", err)
+	}
+	if info.FirmwareRevision, err = cam.ReadString(FirmwareRevisionString); err != nil {
+		return nil, fmt.Errorf("failed to read firmware revision: %w", err)
+	}
+	if info.SerialNumber, err = cam.ReadString(LSSSerialNumberString); err != nil {
+		return nil, fmt.Errorf("failed to read serial number: %w", err)
+	}
+
+	return &info, nil
+}
+
+func (cam *A900) ReadString(c *ble.Characteristic) (string, error) {
+	p := cam.Profile()
 	if p == nil {
 		var err error
-		if p, err = cli.DiscoverProfile(false); err != nil {
+		if p, err = cam.DiscoverProfile(false); err != nil {
 			return "", fmt.Errorf("failed to discover profile: %w", err)
 		}
 	}
@@ -156,7 +144,7 @@ func ReadCharacteristic(cli ble.Client, c *ble.Characteristic) (string, error) {
 	} else if c.Property|ble.CharRead == 0 {
 		return "", errors.New("characteristic cannot be read")
 	} else {
-		if buf, err := cli.ReadCharacteristic(c); err != nil {
+		if buf, err := cam.ReadCharacteristic(c); err != nil {
 			return "", fmt.Errorf("failed to read characteristic: %w", err)
 		} else {
 			return strings.TrimSpace(strings.Trim(string(buf), "\x00")), nil
@@ -180,7 +168,12 @@ func main() {
 		return
 	}
 
-	fmt.Printf("DETECTED: %#v\n", cam.DeviceInformation)
+	fmt.Println("Connected, fetching device info.")
+	if info, err := cam.DeviceInformation(); err == nil {
+		fmt.Printf("Device Info: %#v\n", info)
+	} else {
+		fmt.Println("error getting device information:", err)
+	}
 
 	quit := make(chan os.Signal)
 	signal.Notify(quit, os.Interrupt, syscall.SIGTERM)
