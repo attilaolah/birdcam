@@ -18,23 +18,56 @@ import (
 // LocalName advertised by this camera model.
 const CamName = "A900"
 
-var (
-	// Standard BLE characteristics.
-	// These are available in https://pkg.go.dev/tinygo.org/x/bluetooth.
-	ManufacturerNameString = ble.NewCharacteristic(ble.UUID16(bluetooth.CharacteristicUUIDManufacturerNameString.Get16Bit()))
-	ModelNumberString      = ble.NewCharacteristic(ble.UUID16(bluetooth.CharacteristicUUIDModelNumberString.Get16Bit()))
-	SoftwareRevisionString = ble.NewCharacteristic(ble.UUID16(bluetooth.CharacteristicUUIDSoftwareRevisionString.Get16Bit()))
-	FirmwareRevisionString = ble.NewCharacteristic(ble.UUID16(bluetooth.CharacteristicUUIDFirmwareRevisionString.Get16Bit()))
+// UUID generates Nikon vendor-specific UUIDs.
+func UUID(b uint16) ble.UUID {
+	return ble.MustParse(fmt.Sprintf("0000%04x-3dd4-4255-8d62-6dc7b9bd5561", b))
+}
 
+var (
 	// COOLPIX A900 vendor-specific stuff.
 	// These are mostly reverse-engineered, so take them with a grain of salt.
 
-	// Service advertised by this camera model.
-	Vendor = ble.NewService(ble.MustParse("0000de00-3dd4-4255-8d62-6dc7b9bd5561"))
+	// Services advertised by this camera model.
 
-	// Characteristics advertised by this camera model.
-	SerialNumberString     = ble.NewCharacteristic(ble.MustParse("0000200b-3dd4-4255-8d62-6dc7b9bd5561"))
-	DeviceIdentifierString = ble.NewCharacteristic(ble.MustParse("00002003-3dd4-4255-8d62-6dc7b9bd5561"))
+	// >>> Handle, ValueHandle:
+	GAP        = ble.NewService(ble.GAPUUID)        // 0x01 0x07
+	GATT       = ble.NewService(ble.GATTUUID)       // 0x0c 0x0f
+	NIKON      = ble.NewService(UUID(0xDE00))       // 0x40 0x5a // https://hal.inria.fr/hal-02394629/document @ page 9
+	DeviceInfo = ble.NewService(ble.DeviceInfoUUID) // 0x6f 0x77
+
+	// GAPP >>> Handle, ValueHandle, EndHandle (IFF != ValueHandle)
+	DeviceName     = ble.NewCharacteristic(ble.DeviceNameUUID)     // 0x02 0x03
+	Appearance     = ble.NewCharacteristic(ble.AppearanceUUID)     // 0x04 0x05
+	PeferredParams = ble.NewCharacteristic(ble.PeferredParamsUUID) // 0x06 0x07
+
+	// GATT >>> Handle, ValueHandle, EndHandle (IFF != ValueHandle)
+	ServiceChanged = ble.NewCharacteristic(ble.ServiceChangedUUID) // 0x0d 0x0e 0x0f
+
+	// DeviceInfo >>> Handle, ValueHandle, EndHandle (IFF != ValueHandle)
+	ManufacturerNameString = ble.NewCharacteristic(ble.UUID16(bluetooth.CharacteristicUUIDManufacturerNameString.Get16Bit())) // 0x70 0x71
+	FirmwareRevisionString = ble.NewCharacteristic(ble.UUID16(bluetooth.CharacteristicUUIDFirmwareRevisionString.Get16Bit())) // 0x72 0x73
+	SoftwareRevisionString = ble.NewCharacteristic(ble.UUID16(bluetooth.CharacteristicUUIDSoftwareRevisionString.Get16Bit())) // 0x74 0x75
+	ModelNumberString      = ble.NewCharacteristic(ble.UUID16(bluetooth.CharacteristicUUIDModelNumberString.Get16Bit()))      // 0x76 0x77
+
+	// Characteristics advertised by this camera model (mostly reverse-engineered).
+	// Some are also listed here: https://dslrdashboard.info/phpBB3/viewtopic.php?p=7796#p7796
+
+	// NIKON >>> Handle, ValueHandle, EndHandle (IFF != ValueHandle)
+	Authentication          = ble.NewCharacteristic(UUID(0x2000)) // 0x41 0x42 0x43
+	PowerControl            = ble.NewCharacteristic(UUID(0x2001)) // 0x44 0x45
+	ClientDeviceName        = ble.NewCharacteristic(UUID(0x2002)) // 0x46 0x47
+	ServerDeviceName        = ble.NewCharacteristic(UUID(0x2003)) // 0x48 0x49
+	ConnectionConfiguration = ble.NewCharacteristic(UUID(0x2004)) // 0x4a 0x4b
+	ConnectionEstablishment = ble.NewCharacteristic(UUID(0x2005)) // 0x4c 0x4d
+	CurrentTime             = ble.NewCharacteristic(UUID(0x2006)) // 0x4e 0x4f
+	LocationInformation     = ble.NewCharacteristic(UUID(0x2007)) // 0x50 0x51
+	LSSControlPoint         = ble.NewCharacteristic(UUID(0x2008)) // 0x52 0x53 0x54
+	LSSFeature              = ble.NewCharacteristic(UUID(0x2009)) // 0x55 0x56
+	BatteryLevel            = ble.NewCharacteristic(UUID(0x2A19)) // 0x57 0x58
+	LSSSerialNumberString   = ble.NewCharacteristic(UUID(0x200b)) // 0x59 5x5a
+
+	// Advertised descriptors:
+	// ClientCharacteristicConfig [0x2902] at handles: 0x0f, 0x43, 0x54.
 )
 
 type DeviceInformation struct {
@@ -59,7 +92,7 @@ func Connect(ctx context.Context) (cam *A900, err error) {
 			return false
 		}
 		for _, s := range a.Services() {
-			if Vendor.UUID.Equal(s) {
+			if NIKON.UUID.Equal(s) {
 				txp = a.TxPowerLevel()
 				return true
 			}
@@ -97,7 +130,7 @@ func Connect(ctx context.Context) (cam *A900, err error) {
 		err = fmt.Errorf("failed to read firmware revision: %w", err)
 		return
 	}
-	if info.SerialNumber, err = ReadCharacteristic(cli, SerialNumberString); err != nil {
+	if info.SerialNumber, err = ReadCharacteristic(cli, LSSSerialNumberString); err != nil {
 		err = fmt.Errorf("failed to read serial number: %w", err)
 		return
 	}
