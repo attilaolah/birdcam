@@ -50,6 +50,7 @@ var (
 	ModelNumberString      = ble.NewCharacteristic(ble.UUID16(bluetooth.CharacteristicUUIDModelNumberString.Get16Bit()))      // 0x76 0x77
 
 	// Characteristics advertised by this camera model (mostly reverse-engineered).
+	// Disassembled from SnapBridge APK / com/nikon/snapbridge/cmru/bleclient/services/lss/BleLssService.
 	// Some are also listed here: https://dslrdashboard.info/phpBB3/viewtopic.php?p=7796#p7796
 
 	// NIKON >>> Handle, ValueHandle, EndHandle (IFF != ValueHandle)
