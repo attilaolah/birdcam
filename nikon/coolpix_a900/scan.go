@@ -179,6 +179,69 @@ func main() {
 	signal.Notify(quit, os.Interrupt, syscall.SIGTERM)
 	quitting := false
 
+	fmt.Printf("Notification-Subscribing @ %s: ", LSSControlPoint.UUID)
+	if c := cam.Profile().FindCharacteristic(LSSControlPoint); c == nil {
+		fmt.Println("characteristic not found!")
+	} else {
+		if c.Property|ble.CharNotify == 0 {
+			fmt.Println("characteristic does not support notification!")
+		}
+		if err = cam.Subscribe(c, false, func(req []byte) {
+			fmt.Println("NOT: %s = %#v", LSSControlPoint.UUID, req)
+		}); err != nil {
+			fmt.Println("error:", err)
+		} else {
+			fmt.Println("ok!")
+		}
+	}
+
+	fmt.Printf("Indication-Subscribing @ %s: ", Authentication.UUID)
+	if c := cam.Profile().FindCharacteristic(Authentication); c == nil {
+		fmt.Println("characteristic not found!")
+	} else {
+		if c.Property|ble.CharIndicate == 0 {
+			fmt.Println("characteristic does not support indication!")
+		}
+		if err = cam.Subscribe(c, true, func(req []byte) {
+			fmt.Println("IND: %s = %#v", Authentication.UUID, req)
+		}); err != nil {
+			fmt.Println("error:", err)
+		} else {
+			fmt.Println("ok!")
+		}
+	}
+
+	fmt.Printf("Authenticating: ")
+	buf := []byte{0x01, 0x48, 0x0a, 0x18, 0xd1, 0x27, 0xef, 0xee, 0x42, 0x84, 0x57, 0xd5, 0x70, 0x4c, 0x2b, 0xe5, 0x53}
+	if c := cam.Profile().FindCharacteristic(Authentication); c == nil {
+		fmt.Println("characteristic not found!")
+	} else {
+		if c.Property|ble.CharWrite == 0 {
+			fmt.Println("characteristic does not support writing!")
+		}
+		if err := cam.WriteCharacteristic(c, buf, false); err != nil {
+			fmt.Println("error:", err)
+		} else {
+			fmt.Println("ok!")
+		}
+	}
+
+	// Enabling Wi-Fi won't work until authentication is completed.
+
+	//fmt.Printf("Enabling WiFi: ")
+	//if c := cam.Profile().FindCharacteristic(ConnectionEstablishment); c == nil {
+	//	fmt.Println("characteristic not found!")
+	//} else {
+	//	if c.Property|ble.CharWrite == 0 {
+	//		fmt.Println("characteristic does not support writing!")
+	//	}
+	//	if err := cam.WriteCharacteristic(c, []byte{0x01}, false); err != nil {
+	//		fmt.Println("error:", err)
+	//	} else {
+	//		fmt.Println("ok!")
+	//	}
+	//}
+
 	for {
 		select {
 		case <-time.After(time.Second / 10):
@@ -186,14 +249,19 @@ func main() {
 				fmt.Printf("\rCONN %s [%s] / TX %d / RSSI %d", CamName, cam.Addr(), cam.TxPower, cam.ReadRSSI())
 			}
 		case <-quit:
+			quitting = true
 			fmt.Println()
-			fmt.Print("Ctrl+C, closing connection: ")
+			fmt.Print("Ctrl+C, clearing subscriptions: ")
+			if err := cam.ClearSubscriptions(); err != nil {
+				fmt.Print("failed:", err)
+				return
+			}
+			fmt.Print("ok; closing connection: ")
 			if err := cam.CancelConnection(); err != nil {
 				fmt.Print("failed:", err)
 				return
 			}
 			fmt.Print("ok")
-			quitting = true
 		case <-cam.Disconnected():
 			fmt.Println()
 			fmt.Println("Disconnected.")
