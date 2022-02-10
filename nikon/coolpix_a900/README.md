@@ -26,9 +26,9 @@ Example successful 3-way handshakes, performed by the app:
 
 ---
 
-- Phone -> Camera: `01 480a18d127efee4 28457d5704c2be553`
-- Camera -> Phone: `02 000062630000676 4357ed673c4281573`
-- Phone -> Camera: `03 480a18d127efee4 2988f74040e99ffc2`
+- Phone -> Camera: `01 480a18d127efee42 8457d5704c2be553`
+- Camera -> Phone: `02 0000626300006764 357ed673c4281573`
+- Phone -> Camera: `03 480a18d127efee42 988f74040e99ffc2`
 
 ---
 
@@ -37,3 +37,6 @@ Example successful 3-way handshakes, performed by the app:
 - Phone -> Camera: `03 0bb2f119679250af c5daf56728f5c358`
 
 ---
+
+A similar protocol is described in
+[this paper](https://eprint.iacr.org/2009/013.pdf#page=13), on page 13.
