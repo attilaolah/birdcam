@@ -384,6 +384,206 @@ just calls `LsSecInit()`. The full disassembled `x86_64` file is
     23fb:       00 00 00 00 00
 ```
 
+Reconstructing that to C, we get the following ugly-looking code:
+
+```c
+int __cdecl Java_com_nikon_LsSec_jniLsSec_init(int a1, int a2, unsigned int a3, char a4)
+{
+  int result; // eax
+
+  if ( a4 == 1 )
+    result = LsSecInit(&unk_9200, a3);
+  else
+    result = LsSecInit(&unk_8140, a3);
+  return result;
+}
+```
+
+Knowing that this is JNI, we can further clean it up:
+
+```c
+#include <jni.h>
+
+JNIEXPORT jint JNICALL
+Java_com_nikon_LsSec_jniLsSec_init(JNIEnv *env, jobject thisobj, jint i, jboolean z) {
+  if (z == JNI_TRUE) {
+    return LsSecInit(&unk_9200, seed);
+  }
+  return LsSecInit(&unk_8140, seed);
+}
+```
+
+And since we know that `z` is always false in our case, we can simply translate
+this to a call to `LsSecInit(&unk_8140, seed)`.
+
+The next step is to decompile `LsSecInit()`. Jumping straight to the C code
+this time, it looks rather complicated at first:
+
+```c
+#include <stdint.h>
+#include <x86intrin.h>
+
+int __cdecl LsSecInit(__m128i *a1, unsigned int seed)
+{
+  __m128i *v2; // eax
+
+  v2 = a1;
+  do
+  {
+    _mm_storeu_si128(v2, (__m128i)0LL);
+    ++v2;
+  }
+  while ( v2 != &a1[264] );
+  a1[264].m128i_i8[0] = 0;
+  a1[264].m128i_i8[1] = 0;
+  a1[264].m128i_i8[2] = 0;
+  a1[264].m128i_i8[3] = 0;
+  a1[264].m128i_i8[4] = 0;
+  a1[264].m128i_i8[5] = 0;
+  a1[264].m128i_i8[6] = 0;
+  a1[264].m128i_i8[7] = 0;
+  a1[264].m128i_i8[8] = 0;
+  a1[264].m128i_i8[9] = 0;
+  a1[264].m128i_i8[10] = 0;
+  a1[264].m128i_i8[11] = 0;
+  if ( seed )
+    srand(seed);
+  sub_880();
+  a1[264].m128i_i32[2] = 1;
+  return 0;
+}
+
+uint32_t uint32_7040;
+
+void sub_880() {
+    uint32_7040 = 1;
+}
+```
+
+However, what's really happening here is that the generated machine code is
+using intrinsics to zero out a block of memory in 128-bit increments, and then
+some padding. To simplify that, we can simply zero-out the array at
+initilaisation time, like so:
+
+```c
+typedef int32_t ls_sec_data_t[265*128/32];
+
+void LsSecInit(ls_sec_data_t arg, unsigned int seed) {
+  srand(seed);
+  arg[264*4 + 2] = 1;
+}
+
+int main() {
+  // […]
+  ls_sec_data_t ls_sec_data = {0};  // initialise to zeros here
+  LsSecInit(ls_sec_data, now_millis_trunc);
+
+  return 0;
+}
+```
+
+But in reality, we don't really need to set those values until we stumble upon
+some code that will actually use them. So for all intents and purposes, we
+might as well just call `srand(now_millis_truc)`. And since all it does is sets
+up the RNG, we don't need to care about truncating and whatnot; simply passing
+any readily available time value should be good enough.
+
+So next we look at `Java_com_nikon_LsSec_jniLsSec_Stage1st()`. Here is the
+decompiled C code:
+
+```c
+int __cdecl Java_com_nikon_LsSec_jniLsSec_Stage1st(int a1, int a2, int a3)
+{
+  int v3; // ebp
+  signed int v4; // ST1C_4
+  char v6; // [esp+2Fh] [ebp-1Dh]
+
+  v3 = (*(int (__cdecl **)(int, int, char *))(*(_DWORD *)a1 + 736))(a1, a3, &v6);
+  v4 = LsSec1stStage((int)&unk_8140, v3);
+  (*(void (__cdecl **)(int, int, int, _DWORD))(*(_DWORD *)a1 + 768))(a1, a3, v3, 0);
+  return v4;
+}
+```
+
+Again, looks overly complicated, but knowing this is JNI, we can rewrite the
+function signature like so:
+
+```c
+#include <jni.h>
+
+JNIEXPORT jint JNICALL
+Java_com_nikon_LsSec_jniLsSec_Stage1st(JNIEnv *env, jobject thisobj, jbyteArray arr) {
+  // […]
+}
+```
+
+Inside the function, most of the magic is `GetByteArrayElements()` and probably
+`GetByteArrayElements()`. Then the actual work is done in `LsSec1stStage()`,
+which gets a pointer to our familiar address in memory, `&unk_8140`, as well as
+`v3`, disguised as an int but really, a pointer into what is essentially eight
+bytes of allocated memory.
+
+Looking at `LsSec1stStage`, we see that it simply uses `rand()` to get two
+integers and assign it to the addresses `v3` and `v3+4`, i.e. it generates
+eight random bytes, then the Java code uses that to set the nonce value via
+`setNonce()`. We don't really need to do all of this in C, so we'll jump right
+to the next step, which in our case is `stage3`.
+
+Here the deal is similar as with stage 1, except we have 3 arrays instead of
+just one. Those three arrays all get converted from `jbyteArray` to `int`
+(`char` arrays under the hood), and then back.
+
+We can see from the Java code, that the arrays are:
+
+1. The nonce.
+2. Value we got previously from stage 1.
+3. The device ID.
+
+NOTE: (1) and (3) in this case are actually the nonce and device ID we got from
+the camera.
+
+Here is the decompiled C code, unmodified:
+
+```c
+signed int __cdecl LsSec3rdStage(int a1, int a2, int a3, int a4, int a5)
+{
+  int v5; // edx
+  char *v6; // ebp
+  int v7; // esi
+  int v8; // edi
+  int v10; // [esp+14h] [ebp-28h]
+
+  if ( *(_DWORD *)(a1 + 4232) != 3 )
+    return -103;
+  sub_1B40(a1 + 32, a2, 8);
+  sub_1B40(a1 + 40, a3, 8);
+  sub_1B40(a1, a2, 4);
+  sub_1B40(a1 + 4, a3, 4);
+  v5 = 0;
+  v6 = (char *)&unk_4200;
+  v7 = a1 + 24;
+  v8 = a1 + 8;
+  while ( 1 )
+  {
+    v10 = v5;
+    sub_1B40(v7, v6, 8);
+    sub_8C0(v7, v8, 24);
+    if ( !sub_1D00(v8, a4, 8) )
+      break;
+    v5 = v10 + 1;
+    v6 += 8;
+    if ( (_WORD)v10 == 7 )
+      return -102;
+  }
+  *(_BYTE *)a1 = v10;
+  sub_1B40(a1 + 32, a3, 8);
+  sub_1B40(a1 + 40, a2, 8);
+  sub_8C0(v7, a5, 24);
+  *(_DWORD *)(a1 + 4232) = 5;
+  return 0;
+}
+```
+
 ## Repro Instructions
 
 To repro the next steps, run this (preferrably in a container):
