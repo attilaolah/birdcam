@@ -26,11 +26,9 @@ typedef unsigned long   DWORD;          // 32-bit
 #define BYTE1(d) (((BYTE)(d)) && 0xFF)
 #define BYTE2(d) (((BYTE)(d) >> 4) && 0xFF)
 
-uint32_t uint32_7040;
-
-int32_t sub_8C0(int32_t a1, int32_t *a2, uint16_t a3) {
-  int32_t v3; // esi
-  int32_t v5; // ST00_4
+void sub_8C0(int32_t *a1, int32_t *a2) {
+  int32_t *v3; // esi
+  int32_t *v5; // ST00_4
   int32_t v6; // edx
   uint8_t *v7; // esi
   uint8_t v8; // al
@@ -41,69 +39,59 @@ int32_t sub_8C0(int32_t a1, int32_t *a2, uint16_t a3) {
   uint32_t v13; // et1
   int32_t v14; // [esp+18h] [ebp-54h]
   int32_t v15; // [esp+1Ch] [ebp-50h]
-  int32_t v16; // [esp+20h] [ebp-4Ch]
+  int32_t *v16; // [esp+20h] [ebp-4Ch]
   int32_t v17; // [esp+3Ch] [ebp-30h]
   int32_t v18; // [esp+40h] [ebp-2Ch]
   uint8_t v19[4]; // [esp+44h] [ebp-28h]
   uint8_t v20; // [esp+48h] [ebp-24h]
-  uint32_t v21; // [esp+4Ch] [ebp-20h]
+
 
   v3 = a1;
-  uint16_t v4 = a3;
-  v21 = 42; // TODO: __readgsdword(0x14u);
-  if ( !uint32_7040 )
-    uint32_7040 = 1;
-  if ( a3 <= 7u ) {
-    v16 = a1;
-    v15 = 84281096;
-    v14 = 16909060;
-  } else {
-    v15 = 84281096;
-    v14 = 16909060;
-    v16 = a1 + 8 * ((uint16_t)(a3 - 8) >> 3) + 8;
-    do {
-      sub_1AD0(v3, &v17);
-      v5 = v3 + 4;
-      v3 += 8;
-      sub_1AD0(v5, &v18);
-      v17 ^= v14;
-      v18 ^= v15;
-      sub_1500(&v17, &v18);
-      v14 = v17;
-      v15 = v18;
-    } while ( v16 != v3 );
-    v4 = a3 & 7;
-  }
-  if (v4) {
-    v6 = 0;
-    v7 = (uint8_t *)v16;
-    do {
-      v8 = *v7++;
-      v19[v6] = v8;
-      v9 = (uint16_t)v7 - v16;
-      v6 = (int16_t)((uint16_t)v7 - v16);
-    } while ( v6 < v4 );
-    if ( v9 <= 7 ) {
-      v19[v6] = -1;
-      if ( (int16_t)(v9 + 1) <= 7 ) {
-        v19[(int16_t)(v9 + 1)] = -1;
-        if ( v9 != 6 ) {
-          v19[(int16_t)(v9 + 2)] = -1;
-          if ( v9 != 5 ) {
-            v19[(int16_t)(v9 + 3)] = -1;
-            if ( v9 != 4 ) {
-              v19[(int16_t)(v9 + 4)] = -1;
-              if ( v9 != 3 ) {
-                v19[(int16_t)(v9 + 5)] = -1;
-                if ( v9 != 2 ) {
-                  v19[(int16_t)(v9 + 6)] = -1;
-                  v10 = v9 + 7;
-                  if ( v9 != 1 ) {
-                    v11 = v9 + 8;
-                    v19[v10] = -1;
-                    if ( v11 != 8 ) {
-                      v19[v11] = -1;
-                    }
+  v15 = 84281096;
+  v14 = 16909060;
+  v16 = a1 + 16;
+  do {
+    sub_1AD0(v3, &v17);
+    v5 = v3 + 4;
+    v3 += 8;
+    sub_1AD0(v5, &v18);
+    v17 ^= v14;
+    v18 ^= v15;
+    sub_1500(&v17, &v18);
+    v14 = v17;
+    v15 = v18;
+  } while ( v16 != v3 );
+  // This is basically some fancy memcp again.
+  v6 = 0;
+  v7 = (uint8_t *)v16;
+  do {
+    v8 = *v7++;
+    v19[v6] = v8;
+    // TODO!
+    //v9 = (uint16_t)v7 - v16;
+    //v6 = (int16_t)((uint16_t)v7 - v16);
+  } while ( v6 < 2 );
+  return; // debug
+  if ( v9 <= 7 ) {
+    v19[v6] = -1;
+    if ( (int16_t)(v9 + 1) <= 7 ) {
+      v19[(int16_t)(v9 + 1)] = -1;
+      if ( v9 != 6 ) {
+        v19[(int16_t)(v9 + 2)] = -1;
+        if ( v9 != 5 ) {
+          v19[(int16_t)(v9 + 3)] = -1;
+          if ( v9 != 4 ) {
+            v19[(int16_t)(v9 + 4)] = -1;
+            if ( v9 != 3 ) {
+              v19[(int16_t)(v9 + 5)] = -1;
+              if ( v9 != 2 ) {
+                v19[(int16_t)(v9 + 6)] = -1;
+                v10 = v9 + 7;
+                if ( v9 != 1 ) {
+                  v11 = v9 + 8;
+                  v19[v10] = -1;
+                  if ( v11 != 8 ) {
+                    v19[v11] = -1;
                   }
                 }
               }
@@ -112,20 +100,14 @@ int32_t sub_8C0(int32_t a1, int32_t *a2, uint16_t a3) {
         }
       }
     }
-    sub_1AD0(v19, &v17);
-    sub_1AD0(&v20, &v18);
-    v17 ^= v14;
-    v18 ^= v15;
-    sub_1500(&v17, &v18);
   }
+  sub_1AD0(v19, &v17);
+  sub_1AD0(&v20, &v18);
+  v17 ^= v14;
+  v18 ^= v15;
+  sub_1500(&v17, &v18);
   sub_1B00((uint8_t *)a2, &v17);
   sub_1B00((uint8_t *)(a2 + 4), &v18);
-  v13 = 42; // TODO: __readgsdword(0x14u);
-  result = v13 ^ v21;
-  // TODO: ASM!
-  //if ( v13 != v21 )
-    //sub_850();
-  return result;
 }
 
 void sub_1500(int32_t *a2, int32_t *a3) {

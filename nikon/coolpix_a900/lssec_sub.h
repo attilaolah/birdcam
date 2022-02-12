@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 
-int32_t sub_8C0(int32_t a1, int32_t *a2, uint16_t a3);
+void sub_8C0(int32_t *a1, int32_t *a2);
 void sub_1500(int32_t *a2, int32_t *a3);
 uint8_t* sub_1B00(uint8_t *a1, int32_t *a2);
 void sub_1AD0(uint32_t *a1, uint32_t *a2);
