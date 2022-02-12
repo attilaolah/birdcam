@@ -6,7 +6,7 @@
 // DATA XREF:
 // sub_8C0+0x81
 // sub_8C0+0x0206
-extern char byte_3180[4096+128];
+extern uint8_t byte_3180[4096+128];
 
 // DATA XREF:
 // LsSec2ndStage+0x73
@@ -15,12 +15,12 @@ extern uint32_t byte_4200[16];
 
 // DATA XREF:
 // sub_1620+0xAB
-extern char byte_4240[4096];
+extern uint8_t byte_4240[4096];
 
 // DATA XREF:
 // sub_1620+0x99
-extern char byte_5240[72];
+extern uint8_t byte_5240[72];
 
-extern char version[];
+extern uint8_t version[];
 
 #endif /* !_LSSEC_DATA_H_ */
