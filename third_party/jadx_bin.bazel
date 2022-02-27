@@ -1,0 +1,26 @@
+filegroup(
+    name = "jadx",
+    srcs = ["bin/jadx"],
+    data = [":lib"],
+    target_compatible_with = [
+        "@platforms//cpu:x86_64",
+        "@platforms//os:linux",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+filegroup(
+    name = "jadx_gui",
+    srcs = ["bin/jadx-gui"],
+    data = [":lib"],
+    target_compatible_with = [
+        "@platforms//cpu:x86_64",
+        "@platforms//os:linux",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+filegroup(
+    name = "lib",
+    srcs = glob(["lib/*.jar"]),
+)

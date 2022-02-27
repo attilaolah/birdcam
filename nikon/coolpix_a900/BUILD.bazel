@@ -23,21 +23,24 @@ cc_test(
 cc_library(
     name = "jni",
     hdrs = [
-        ":copy_jni",
-        ":copy_jni_md",
+        ":jni_h",
+        ":jni_md_h",
     ],
     includes = ["."],
+    target_compatible_with = [
+        "@platforms//os:linux",
+    ],
 )
 
 genrule(
-    name = "copy_jni",
+    name = "jni_h",
     srcs = ["@bazel_tools//tools/jdk:jni_header"],
     outs = ["jni.h"],
     cmd = "cp -f $< $@",
 )
 
 genrule(
-    name = "copy_jni_md",
+    name = "jni_md_h",
     srcs = ["@bazel_tools//tools/jdk:jni_md_header-linux"],
     outs = ["jni_md.h"],
     cmd = "cp -f $< $@",

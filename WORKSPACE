@@ -65,6 +65,15 @@ http_archive(
     ],
 )
 
+http_archive(
+    name = "jadx_bin",
+    build_file = "//third_party:jadx_bin.bazel",
+    sha256 = "861533d8dc1264a712db86b61ff9fe0630b3b2bb52bd21e7cef02e6467a4ab83",
+    urls = [
+        "https://github.com/skylot/jadx/releases/download/v1.3.3/jadx-1.3.3.zip",
+    ],
+)
+
 http_file(
     name = "snapbridge",
     downloaded_file_path = "com.nikon.snapbridge.cmru-2.8.3.apk",

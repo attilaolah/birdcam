@@ -1,0 +1,53 @@
+TAR = [
+    "&&",
+    "tar",
+    "--create",
+    '--file="$@"',
+    '--directory="$$(basename "$@" .tar)"',
+    ".",
+]
+
+genrule(
+    name = "res",
+    srcs = ["@snapbridge//file"],
+    outs = ["snapbridge.res.tar"],
+    cmd = " ".join([
+        '"$(execpath @jadx_bin//:jadx)"',
+        '--output-dir-res "$$(basename "$@" .tar)"',
+        "--no-src",
+        '"$(location @snapbridge//file)"',
+    ] + TAR),
+    exec_tools = ["@jadx_bin//:jadx"],
+)
+
+genrule(
+    name = "src",
+    srcs = ["@snapbridge//file"],
+    outs = ["snapbridge.src.tar"],
+    cmd = " ".join([
+        '"$(execpath @jadx_bin//:jadx)"',
+        '--output-dir-src "$$(basename "$@" .tar)"',
+        "--no-res",
+        "--deobf",
+        '"$(location @snapbridge//file)"',
+    ] + TAR),
+    exec_tools = ["@jadx_bin//:jadx"],
+)
+
+genrule(
+    name="ls_sec_jni_so",
+    srcs = [":res"],
+    outs = ["libLsSec-jni.so"],
+    cmd = " ".join([
+        "tar",
+        "--extract",
+        "--strip-components=3",
+        '--file="$(location :res)"',
+        '--directory="$$(dirname "$@")"',
+        '"./lib/x86_64/$$(basename "$@")"',
+    ]),
+    target_compatible_with=[
+        "@platforms//cpu:x86_64",
+        "@platforms//os:linux",
+    ],
+)
