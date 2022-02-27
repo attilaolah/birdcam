@@ -3,10 +3,8 @@
 
 namespace ls_sec {
 
-LsSec::LsSec(unsigned int seed) {
-  // TODO:
-  // LsSecInit(&data, seed);
-  // TODO: throw on non-zero!
-}
+LsSec::LsSec(unsigned int seed) { LsSecInit(&data_, seed); }
+
+LsSecError::LsSecError(int code) : code_(code) {}
 
 } // namespace ls_sec

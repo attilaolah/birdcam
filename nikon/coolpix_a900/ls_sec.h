@@ -7,10 +7,18 @@ namespace ls_sec {
 
 class LsSec {
 public:
-  LsSec(unsigned int seed);
+  explicit LsSec(unsigned int seed);
 
 private:
   uint8_t data_[8408];
+};
+
+class LsSecError {
+public:
+  LsSecError(int code);
+
+private:
+  int code_;
 };
 
 } // namespace ls_sec
