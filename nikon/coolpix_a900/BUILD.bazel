@@ -1,0 +1,14 @@
+cc_library(
+    name = "ls_sec",
+    srcs = ["ls_sec.cc"],
+    hdrs = ["ls_sec.h"],
+)
+
+cc_test(
+    name = "ls_sec_test",
+    srcs = ["ls_sec_test.cc"],
+    deps = [
+        ":ls_sec",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
