@@ -3,7 +3,7 @@
 
 namespace ls_sec {
 
-LsSec::LsSec(unsigned int seed) { LsSecInit(&data_, seed); }
+LsSec::LsSec(unsigned int seed) noexcept { LsSecInit(&data_, seed); }
 
 std::array<uint8_t, 8> LsSec::stage_1() {
   std::array<uint8_t, 8> result;

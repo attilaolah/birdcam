@@ -8,7 +8,7 @@ namespace ls_sec {
 
 class LsSec {
 public:
-  explicit LsSec(unsigned int seed);
+  explicit LsSec(unsigned int seed) noexcept;
 
   std::array<uint8_t, 8> stage_1();
 
