@@ -18,9 +18,9 @@ LsSecError::LsSecError(int code) : code_(code) {}
 
 const char *LsSecError::what() const noexcept {
   switch (code_) {
-  case 0:
+  case OK:
     return "ok";
-  case -103:
+  case ERR_WRONG_STAGE:
     return "lssec error: wrong stage";
   default:
     return "lssec error: unknown";

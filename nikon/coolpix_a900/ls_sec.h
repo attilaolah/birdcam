@@ -23,6 +23,9 @@ public:
   virtual const char *what() const noexcept override;
 
 private:
+  static constexpr int OK = 0;
+  static constexpr int ERR_WRONG_STAGE = -103;
+
   int code_;
 };
 
