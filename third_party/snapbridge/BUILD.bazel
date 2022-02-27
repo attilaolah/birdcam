@@ -36,6 +36,11 @@ genrule(
     exec_tools = ["@jadx_bin//:jadx"],
 )
 
+filegroup(
+    name="ls_sec_jni_lds",
+    srcs=["ls_sec_jni.lds"],
+)
+
 genrule(
     name = "ls_sec_jni_so",
     srcs = [":res"],
@@ -57,9 +62,13 @@ genrule(
 cc_library(
     name = "ls_sec_jni",
     srcs = [":libLsSec-jni.so"],
-    data = ["ls_sec_jni_so"],
+    data = [
+        ":ls_sec_jni_lds",
+        ":ls_sec_jni_so",
+    ],
     linkopts = [
         "-lLsSec-jni",
+        "-T$(location :ls_sec_jni_lds)",
     ],
     visibility = ["//nikon:__subpackages__"],
 )
