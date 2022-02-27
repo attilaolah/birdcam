@@ -8,7 +8,10 @@ cc_library(
 cc_library(
     name = "ls_sec_jni",
     hdrs = ["ls_sec_jni.h"],
-    deps = [":jni"],
+    deps = [
+        ":jni",
+        "//third_party/snapbridge:ls_sec_jni",
+    ],
 )
 
 cc_test(

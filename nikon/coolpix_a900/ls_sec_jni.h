@@ -3,6 +3,8 @@
 
 #include <jni.h>
 
+extern "C" {
+
 // LsSec:
 
 int LsSecInit(void *, unsigned int);
@@ -62,5 +64,6 @@ Java_com_nikon_LsSec_jniLsSec_SetContextData(JNIEnv *, jobject, jbyteArray,
                                              jbyteArray, jbyteArray, jbyteArray,
                                              jlongArray, jlongArray, jint,
                                              jboolean);
+}
 
 #endif // LS_SEC_JNI_H
