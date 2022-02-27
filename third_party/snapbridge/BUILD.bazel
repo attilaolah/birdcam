@@ -37,8 +37,8 @@ genrule(
 )
 
 filegroup(
-    name="ls_sec_jni_lds",
-    srcs=["ls_sec_jni.lds"],
+    name = "ls_sec_jni_lds",
+    srcs = ["ls_sec_jni.lds"],
 )
 
 genrule(

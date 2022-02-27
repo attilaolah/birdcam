@@ -1,4 +1,13 @@
 cc_library(
+    name = "sub",
+    srcs = ["sub.cc"],
+    hdrs = ["sub.h"],
+    deps = [
+        "@hexray_tools//:defs",
+    ],
+)
+
+cc_library(
     name = "ls_sec",
     srcs = ["ls_sec.cc"],
     hdrs = ["ls_sec.h"],

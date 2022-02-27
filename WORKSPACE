@@ -83,3 +83,13 @@ http_file(
         "https://gateway.pinata.cloud/ipfs/QmczKJCUZN54WEYxJcxtMnUniz4zzdgAizmoUCEiyupj1U",
     ],
 )
+
+http_archive(
+    name = "hexray_tools",
+    build_file = "//third_party:hexray_tools.bazel",
+    sha256 = "83a2884e1b0f0ff223e68bfd8a7555efdbd079d1002474db9c32b1b92cd37ece",
+    strip_prefix = "hexrays_tools-1d4fc103c7f0f21798ff89c4c9a12598a2b49500",
+    urls = [
+        "https://github.com/nihilus/hexrays_tools/archive/1d4fc103c7f0f21798ff89c4c9a12598a2b49500.zip",
+    ],
+)
