@@ -2,6 +2,13 @@ cc_library(
     name = "ls_sec",
     srcs = ["ls_sec.cc"],
     hdrs = ["ls_sec.h"],
+    deps = [":ls_sec_jni"],
+)
+
+cc_library(
+    name = "ls_sec_jni",
+    hdrs = ["ls_sec_jni.h"],
+    deps = [":jni"],
 )
 
 cc_test(
@@ -11,4 +18,27 @@ cc_test(
         ":ls_sec",
         "@com_google_googletest//:gtest_main",
     ],
+)
+
+cc_library(
+    name = "jni",
+    hdrs = [
+        ":copy_jni",
+        ":copy_jni_md",
+    ],
+    includes = ["."],
+)
+
+genrule(
+    name = "copy_jni",
+    srcs = ["@bazel_tools//tools/jdk:jni_header"],
+    outs = ["jni.h"],
+    cmd = "cp -f $< $@",
+)
+
+genrule(
+    name = "copy_jni_md",
+    srcs = ["@bazel_tools//tools/jdk:jni_md_header-linux"],
+    outs = ["jni_md.h"],
+    cmd = "cp -f $< $@",
 )

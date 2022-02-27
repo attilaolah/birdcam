@@ -1,14 +1,12 @@
 #include "ls_sec.h"
-
-// LsSec shim:
-// extern int LsSecInit(void *buf, unsigned int seed);
+#include "ls_sec_jni.h"
 
 namespace ls_sec {
 
-int init(void *buf, unsigned int seed) {
+LsSec::LsSec(unsigned int seed) {
   // TODO:
-  // return LsSecInit(buf, seed);
-  return 0;
+  // LsSecInit(&data, seed);
+  // TODO: throw on non-zero!
 }
 
 } // namespace ls_sec
