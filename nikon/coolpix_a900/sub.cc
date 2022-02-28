@@ -13,11 +13,11 @@ extern "C" {
 // Args:
 // - dst: pointer to 4 bytes of writeable memory.
 // - src: pointer to 4 bytes of readable memory.
-void _sub_1A40(uint8_t *dst, const uint32_t *src) {
-  dst[0] = BYTE3(*src);
-  dst[1] = BYTE2(*src);
-  dst[2] = BYTE1(*src);
-  dst[3] = *src;
+void _sub_1A40(uint8_t *dst, const uint32_t src) {
+  dst[0] = BYTE3(src);
+  dst[1] = BYTE2(src);
+  dst[2] = BYTE1(src);
+  dst[3] = src;
 }
 
 // Args:
@@ -54,8 +54,8 @@ uint64_t entangle(const std::vector<uint64_t> &elements) {
   }
 
   uint64_t dst;
-  _sub_1A40((uint8_t *)&dst, (uint32_t *)&x);
-  _sub_1A40((uint8_t *)&dst + 4, (uint32_t *)&y);
+  _sub_1A40((uint8_t *)&dst, static_cast<uint32_t>(x));
+  _sub_1A40((uint8_t *)&dst + 4, static_cast<uint32_t>(y));
   return dst;
 }
 
@@ -66,7 +66,7 @@ std::pair<uint64_t, uint64_t> sub_1480(uint64_t a, uint64_t b) {
 
 uint32_t sub_1A40(uint32_t src) {
   uint32_t dst;
-  _sub_1A40(reinterpret_cast<uint8_t *>(&dst), &src);
+  _sub_1A40(reinterpret_cast<uint8_t *>(&dst), src);
   return dst;
 }
 
