@@ -17,6 +17,8 @@ public:
 
   uint64_t stage_3(uint64_t nonce, uint64_t stage_1, uint64_t device_id);
 
+  void stage_4(uint64_t a, uint64_t b, uint64_t c);
+
 private:
   enum class Stage {
     STAGE_1,
@@ -26,6 +28,7 @@ private:
     STAGE_5,
   };
   Stage stage_;
+  int index_;
 };
 
 enum class Status {
