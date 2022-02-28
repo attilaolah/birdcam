@@ -3,6 +3,7 @@
 
 #include <array>
 #include <cstdint>
+#include <exception>
 
 namespace ls_sec {
 
