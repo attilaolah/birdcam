@@ -11,11 +11,6 @@
 extern "C" {
 
 // Args:
-// - src: pointer to 4 bytes of readable memory.
-// - dst: pointer to 4 bytes of writeable memory.
-void _sub_1A10(const uint32_t *src, uint32_t *dst) { *dst = __bswap_32(*src); }
-
-// Args:
 // - dst: pointer to 4 bytes of writeable memory.
 // - src: pointer to 4 bytes of readable memory.
 void _sub_1A40(uint8_t *dst, const uint32_t *src) {
@@ -83,12 +78,6 @@ uint64_t entangle(const std::vector<uint64_t> &elements) {
 std::pair<uint64_t, uint64_t> sub_1480(uint64_t a, uint64_t b) {
   _sub_1480(DATA_2A00.data(), &a, &b);
   return std::make_pair(a, b);
-}
-
-uint32_t sub_1A10(uint32_t src) {
-  uint32_t dst;
-  _sub_1A10(&src, &dst);
-  return dst;
 }
 
 uint32_t sub_1A40(uint32_t src) {
