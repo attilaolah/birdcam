@@ -61,13 +61,13 @@ uint64_t LsSec::stage_3(uint64_t nonce, uint64_t stage_1, uint64_t device_id) {
   return sub_A80(buf.data(), 24);
 }
 
-void LsSec::stage_4(uint64_t a, uint64_t b, uint64_t device_id) {
+void LsSec::stage_4(uint64_t nonce, uint64_t stage_1, uint64_t stage_3) {
   if (stage_ != Stage::STAGE_2) {
     throw ErrWrongStage();
   }
 
-  std::array<uint64_t, 3> buf = {{DATA_4AC0[index_], b, a}};
-  if (sub_A80(buf.data(), 24) != device_id) {
+  std::array<uint64_t, 3> buf = {{DATA_4AC0[index_], stage_1, nonce}};
+  if (sub_A80(buf.data(), 24) != stage_3) {
     throw ErrAuth();
   }
   stage_ = Stage::STAGE_5;
