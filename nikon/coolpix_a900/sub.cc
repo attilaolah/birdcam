@@ -9,6 +9,8 @@
 
 extern "C" {
 
+void _sub_A50() { DATA_9040 = 1; }
+
 // Args:
 // - src: pointer to 4 bytes of readable memory.
 // - dst: pointer to 4 bytes of writeable memory.
@@ -92,6 +94,8 @@ void _sub_A80(const uint64_t *data, uint64_t *dst, size_t n) {
 }
 
 namespace ls_sec {
+
+void sub_A50() { _sub_A50(); }
 
 uint64_t sub_A80(const uint64_t *data, size_t n) {
   uint64_t dst;

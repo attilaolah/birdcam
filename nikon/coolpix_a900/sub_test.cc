@@ -8,11 +8,11 @@ namespace {
 TEST(Sub, sub_A80) {
   {
     std::array<uint64_t, 3> a = {{0}};
-    EXPECT_EQ(sub_A80(a.data(), a.size() * 8), 6291260094789511032);
+    EXPECT_EQ(sub_A80(a.data(), a.size() * 8), 6291260094789511032ULL);
   }
   {
     std::array<uint64_t, 4> a = {{0}};
-    EXPECT_EQ(sub_A80(a.data(), a.size() * 8), 15803886854701008152);
+    EXPECT_EQ(sub_A80(a.data(), a.size() * 8), 15803886854701008152ULL);
   }
 }
 
