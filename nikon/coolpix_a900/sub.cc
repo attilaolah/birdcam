@@ -2,6 +2,7 @@
 
 #include <cstdlib>
 #include <cstring>
+#include <limits>
 
 #include "sub_data.h"
 
@@ -59,39 +60,29 @@ void _sub_1480(const uint64_t *data, uint64_t *a, uint64_t *b) {
   *b = data[16] ^ a_1;
   *a = data[17] ^ b_1;
 }
-
-// Args:
-// - data: `n` bytes of readable memory.
-// - dst: 8 bytes of writeable memory.
-// - n: how many bytes to go through in the inner loop.
-void _sub_A80(const uint64_t *data, uint64_t *dst, size_t n) {
-  uint64_t x;
-  uint64_t y;
-  uint64_t a = 84281096;
-  uint64_t b = 16909060;
-  // Here n could be: {8 (0x8u), 24 (0x18u), 32 (0x20u)}.
-  // This puts the 64-bit (8-byte) offset at {1, 3, 4} respectively.
-  const uint64_t *p = data + ((n - 8) >> 3) + 1; // p += n / 8;
-  do {
-    _sub_1A10((uint32_t *)data, (uint32_t *)&x);
-    _sub_1A10((uint32_t *)data + 1, (uint32_t *)&y);
-    x ^= b;
-    y ^= a;
-    _sub_1480(DATA_2A00.data(), &x, &y);
-    b = x;
-    a = y;
-    data++;
-  } while (p != data);
-  _sub_1A40((uint8_t *)dst, (uint32_t *)&x);
-  _sub_1A40((uint8_t *)dst + 4, (uint32_t *)&y);
-}
 }
 
 namespace ls_sec {
 
-uint64_t sub_A80(const uint64_t *data, size_t n) {
+uint64_t sub_A80(const uint64_t a, const uint64_t b, const uint64_t c) {
+  uint64_t x = 16909060;
+  uint64_t y = 84281096;
+
+  x = __bswap_32(a & std::numeric_limits<uint32_t>::max()) ^ x;
+  y = __bswap_32(a >> 32) ^ y;
+  _sub_1480(DATA_2A00.data(), &x, &y);
+
+  x = __bswap_32(b & std::numeric_limits<uint32_t>::max()) ^ x;
+  y = __bswap_32(b >> 32) ^ y;
+  _sub_1480(DATA_2A00.data(), &x, &y);
+
+  x = __bswap_32(c & std::numeric_limits<uint32_t>::max()) ^ x;
+  y = __bswap_32(c >> 32) ^ y;
+  _sub_1480(DATA_2A00.data(), &x, &y);
+
   uint64_t dst;
-  _sub_A80(data, &dst, n);
+  _sub_1A40((uint8_t *)&dst, (uint32_t *)&x);
+  _sub_1A40((uint8_t *)&dst + 4, (uint32_t *)&y);
   return dst;
 }
 
