@@ -30,7 +30,7 @@ std::pair<uint64_t, uint64_t> LsSec::stage_2(uint64_t stage_1) {
   if (stage_ != Stage::STAGE_1) {
     throw ErrWrongStage();
   }
-  stage_ = Stage::STAGE_5;
+  stage_ = Stage::STAGE_2;
 
   uint64_t nonce = urand64();
   index_ = rand() & 7;
