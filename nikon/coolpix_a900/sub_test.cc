@@ -15,13 +15,13 @@ TEST(Sub, entangle) {
 TEST(Sub, sub_1480) {
   {
     const auto pair = sub_1480(0, 0);
-    EXPECT_EQ(pair.first, 13206668983);
+    EXPECT_EQ(pair.first, 321767095);
     EXPECT_EQ(pair.second, 4107634734);
   }
   {
     const auto pair = sub_1480(1234, 5678);
     EXPECT_EQ(pair.first, 1550836812);
-    EXPECT_EQ(pair.second, 4890505416);
+    EXPECT_EQ(pair.second, 595538120);
   }
 }
 
