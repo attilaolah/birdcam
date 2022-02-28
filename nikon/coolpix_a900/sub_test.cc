@@ -19,6 +19,20 @@ TEST(Sub, sub_1A40) {
   EXPECT_EQ(sub_1A40(0xffffffff), 0xffffffff);
 }
 
+TEST(Sub, sub_1A80) {
+  std::array<uint8_t, 8> dst = {{0, 1, 2, 3, 4, 5, 6, 7}};
+  std::array<uint8_t, 4> src = {{9, 8, 7, 6}};
+  std::array<uint8_t, 8> exp;
+
+  sub_1A80(dst.data(), src.data(), 2);
+  exp = {{9, 8, 2, 3, 4, 5, 6, 7}};
+  EXPECT_EQ(dst, exp);
+
+  sub_1A80(dst.data(), src.data(), 4);
+  exp = {{9, 8, 7, 6, 4, 5, 6, 7}};
+  EXPECT_EQ(dst, exp);
+}
+
 TEST(Sub, sub_1C20) {
   {
     std::array<uint8_t, 0> a;
