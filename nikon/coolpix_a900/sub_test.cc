@@ -5,6 +5,19 @@
 namespace ls_sec {
 namespace {
 
+TEST(Sub, sub_1480) {
+  {
+    const auto pair = sub_1480(0, 0);
+    EXPECT_EQ(pair.first, 13206668983);
+    EXPECT_EQ(pair.second, 4107634734);
+  }
+  {
+    const auto pair = sub_1480(1234, 5678);
+    EXPECT_EQ(pair.first, 1550836812);
+    EXPECT_EQ(pair.second, 4890505416);
+  }
+}
+
 TEST(Sub, sub_1A10) {
   EXPECT_EQ(sub_1A10(0x00000000), 0x00000000);
   EXPECT_EQ(sub_1A10(0xaabbccdd), 0xddccbbaa);
