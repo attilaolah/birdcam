@@ -34,8 +34,7 @@ std::pair<uint64_t, uint64_t> LsSec::stage_2(uint64_t stage_1) {
 
   uint64_t nonce = urand64();
   index_ = rand() & 7;
-  std::array<uint64_t, 3> buf = {{DATA_4AC0[index_], nonce, stage_1}};
-  return std::make_pair(nonce, sub_A80(buf.data(), 24));
+  return std::make_pair(nonce, hash_3(nonce, stage_1));
 }
 
 uint64_t LsSec::stage_3(uint64_t nonce, uint64_t stage_1, uint64_t device_id) {
@@ -43,11 +42,9 @@ uint64_t LsSec::stage_3(uint64_t nonce, uint64_t stage_1, uint64_t device_id) {
     throw ErrWrongStage();
   }
 
-  std::array<uint64_t, 3> buf = {{0, nonce, stage_1}};
 
-  for (index_ = 0; index_ < 8; index_++) {
-    buf[0] = DATA_4AC0[index_];
-    if (sub_A80(buf.data(), 24) == device_id) {
+  for (index_ = 0; index_ < DATA_4AC0.size(); index_++) {
+    if (hash_3(nonce, stage_1) == device_id) {
       break;
     }
   }
@@ -56,9 +53,7 @@ uint64_t LsSec::stage_3(uint64_t nonce, uint64_t stage_1, uint64_t device_id) {
   }
   stage_ = Stage::STAGE_5;
 
-  buf[1] = stage_1;
-  buf[2] = nonce;
-  return sub_A80(buf.data(), 24);
+  return hash_3(stage_1, nonce);
 }
 
 void LsSec::stage_4(uint64_t nonce, uint64_t stage_1, uint64_t stage_3) {
@@ -66,11 +61,15 @@ void LsSec::stage_4(uint64_t nonce, uint64_t stage_1, uint64_t stage_3) {
     throw ErrWrongStage();
   }
 
-  std::array<uint64_t, 3> buf = {{DATA_4AC0[index_], stage_1, nonce}};
-  if (sub_A80(buf.data(), 24) != stage_3) {
+  if (hash_3(stage_1, nonce) != stage_3) {
     throw ErrAuth();
   }
   stage_ = Stage::STAGE_5;
+}
+
+const uint64_t LsSec::hash_3(const uint64_t a, const uint64_t b) const {
+  std::array<uint64_t, 3> buf = {{DATA_4AC0[index_], a, b}};
+  return sub_A80(buf.data(), 24);
 }
 
 const char *ErrAuth::what() const noexcept {

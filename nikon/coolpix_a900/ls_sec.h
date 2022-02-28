@@ -20,6 +20,8 @@ public:
   void stage_4(uint64_t nonce, uint64_t stage_1, uint64_t stage_3);
 
 private:
+  const uint64_t hash_3(const uint64_t a, const uint64_t b) const;
+
   enum class Stage {
     STAGE_1,
     STAGE_2,
