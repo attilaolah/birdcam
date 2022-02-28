@@ -1,39 +1,69 @@
 #include "ls_sec.h"
 
 #include <cstdlib>
+#include <cstring>
 
 #include "sub.h"
+#include "sub_data.h"
 
 namespace ls_sec {
+namespace {
+uint64_t urand64() { return ((uint64_t)rand() << 32) | rand(); }
+} // namespace
 
-LsSec::LsSec(unsigned int seed) noexcept {
+LsSec::LsSec(unsigned int seed) : stage_(Stage::STAGE_1) {
   if (seed) {
     std::srand(seed);
   }
-  sub_A50();
-  reinterpret_cast<uint32_t *>(data_.data())[2100] = 1;
 }
 
 uint64_t LsSec::stage_1() {
-  if (reinterpret_cast<uint32_t *>(data_.data())[2100] != 1) {
+  if (stage_ != Stage::STAGE_1) {
+    throw ErrWrongStage();
+  }
+  stage_ = Stage::STAGE_3;
+
+  return urand64();
+}
+
+std::pair<uint64_t, uint64_t> LsSec::stage_2(uint64_t stage_1) {
+  if (stage_ != Stage::STAGE_1) {
+    throw ErrWrongStage();
+  }
+  stage_ = Stage::STAGE_5;
+
+  uint64_t nonce = urand64();
+  std::array<uint64_t, 3> buf = {{DATA_4AC0[rand() & 7], nonce, stage_1}};
+  return std::make_pair(nonce, sub_A80(buf.data(), 24));
+}
+
+uint64_t LsSec::stage_3(uint64_t nonce, uint64_t stage_1, uint64_t device_id) {
+  if (stage_ != Stage::STAGE_3) {
     throw ErrWrongStage();
   }
 
-  std::array<uint32_t, 2> buf = {{
-    sub_1A40(rand()),
-    sub_1A40(rand()),
-  }};
-  reinterpret_cast<uint32_t *>(data_.data())[2100] = 3;
+  std::array<uint64_t, 3> buf = {{0, nonce, stage_1}};
 
-  return *reinterpret_cast<uint64_t *>(buf.data());
+  int16_t i = 0;
+  for (i = 0; i < 8; ++i) {
+    buf[0] = DATA_4AC0[i];
+    if (sub_A80(buf.data(), 24) == device_id) {
+      break;
+    }
+  }
+  if (i == 8) {
+    throw ErrAuth();
+  }
+  buf[1] = stage_1;
+  buf[2] = nonce;
 
-  /*
-  std::array<uint8_t, 8> result;
-  reinterpret_cast<uint32_t *>(result.data())[0] = sub_1A40(rand());
-  reinterpret_cast<uint32_t *>(result.data())[1] = sub_1A40(rand());
+  stage_ = Stage::STAGE_5;
 
-  return result;
-  */
+  return sub_A80(buf.data(), 24);
+}
+
+const char *ErrAuth::what() const noexcept {
+  return "ls_sec error: authentication error";
 }
 
 const char *ErrWrongStage::what() const noexcept {

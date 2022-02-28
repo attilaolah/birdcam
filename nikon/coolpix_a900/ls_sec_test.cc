@@ -8,12 +8,47 @@ namespace {
 TEST(LsSec, LsSec) { const LsSec ls_sec(42); }
 
 TEST(LsSec, stage_1) {
-  LsSec ls_sec(4);
+  LsSec ls_sec(1);
 
-  EXPECT_EQ(ls_sec.stage_1(), 0x33522611DD7D4E75LLU);
+  EXPECT_EQ(ls_sec.stage_1(), 7749363893351949254LLU);
 
-  // Calling stage_1() again: wrong stage!
+  // Calling stage_1() again: wrong stage.
   EXPECT_THROW(ls_sec.stage_1(), ErrWrongStage);
+}
+
+TEST(LsSec, stage_2) {
+  LsSec ls_sec(2);
+
+  const auto stage_1 = ls_sec.stage_1();
+  EXPECT_EQ(stage_1, 6465365841803442559LLU);
+
+  const auto stage_2 = LsSec(1).stage_2(stage_1);
+  EXPECT_EQ(stage_2.first, 7749363893351949254LLU);
+  EXPECT_EQ(stage_2.second, 14699840007999232621LLU);
+
+  // Calling stage_2() again: wrong stage.
+  EXPECT_THROW(ls_sec.stage_2(stage_1), ErrWrongStage);
+}
+
+TEST(LsSec, stage_3) {
+  LsSec ls_sec(3);
+
+  // Calling stage_3() before stage_1(): wrong stage.
+  EXPECT_THROW(ls_sec.stage_3(0, 0, 0), ErrWrongStage);
+
+  const uint64_t stage_1 = ls_sec.stage_1();
+
+  // Calling stage_3() with wrong data: auth error.
+  EXPECT_THROW(ls_sec.stage_3(0, 0, 0), ErrAuth);
+  EXPECT_THROW(ls_sec.stage_3(1, stage_1, 3), ErrAuth);
+
+  const auto stage_2 = LsSec(1).stage_2(stage_1);
+  const auto stage_3 = ls_sec.stage_3(stage_2.first, stage_1, stage_2.second);
+  EXPECT_EQ(stage_3, 10773747033690629381LLU);
+
+  // Calling stage_3() again: wrong stage.
+  EXPECT_THROW(ls_sec.stage_3(stage_2.first, stage_1, stage_2.second),
+               ErrWrongStage);
 }
 
 } // namespace

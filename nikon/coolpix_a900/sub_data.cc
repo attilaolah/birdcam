@@ -212,3 +212,14 @@ std::array<uint64_t, 1048> DATA_2A00 = {{
     0x09DA48984, 0x04305FA01, 0x0,         0x0,         0x0,
     0x0,         0x0,         0x0,
 }};
+
+std::array<uint64_t, 8> DATA_4AC0 = {{
+    0x52D53304E4664070,
+    0x7BE4F715AC8F4BED,
+    0xFCA15E8B111F4724,
+    0x417F8C2B310C9605,
+    0xF3B1A8EBC188A5FD,
+    0x50D5D31B56601699,
+    0x308AE2A97F6832CD,
+    0xF4EBC7DE34E88F2A,
+}};

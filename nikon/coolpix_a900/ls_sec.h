@@ -9,17 +9,33 @@ namespace ls_sec {
 
 class LsSec {
 public:
-  explicit LsSec(unsigned int seed) noexcept;
+  explicit LsSec(unsigned int seed);
 
   uint64_t stage_1();
 
+  std::pair<uint64_t, uint64_t> stage_2(uint64_t stage_1);
+
+  uint64_t stage_3(uint64_t nonce, uint64_t stage_1, uint64_t device_id);
+
 private:
-  std::array<uint8_t, 8408> data_ = {{0}};
+  enum class Stage {
+    STAGE_1,
+    STAGE_2,
+    STAGE_3,
+    STAGE_4,
+    STAGE_5,
+  };
+  Stage stage_;
 };
 
 enum class Status {
   OK = 0,
+  ERR_AUTH = -102,
   ERR_WRONG_STAGE = -103,
+};
+
+class ErrAuth : public std::exception {
+  virtual const char *what() const noexcept override;
 };
 
 class ErrWrongStage : public std::exception {
