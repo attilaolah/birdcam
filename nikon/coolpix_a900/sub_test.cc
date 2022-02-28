@@ -5,6 +5,17 @@
 namespace ls_sec {
 namespace {
 
+TEST(Sub, sub_A80) {
+  {
+    std::array<uint64_t, 3> a = {{0}};
+    EXPECT_EQ(sub_A80(a.data(), a.size() * 8), 6291260094789511032);
+  }
+  {
+    std::array<uint64_t, 4> a = {{0}};
+    EXPECT_EQ(sub_A80(a.data(), a.size() * 8), 15803886854701008152);
+  }
+}
+
 TEST(Sub, sub_1480) {
   {
     const auto pair = sub_1480(0, 0);

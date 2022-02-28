@@ -5,6 +5,7 @@
 
 namespace ls_sec {
 
+uint64_t sub_A80(const uint64_t *data, std::size_t n);
 std::pair<uint64_t, uint64_t> sub_1480(uint64_t a, uint64_t b);
 uint32_t sub_1A10(uint32_t src);
 uint32_t sub_1A40(uint32_t src);
