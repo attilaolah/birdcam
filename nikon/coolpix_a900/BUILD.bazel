@@ -3,8 +3,15 @@ cc_library(
     srcs = ["sub.cc"],
     hdrs = ["sub.h"],
     deps = [
+        "@com_google_googletest//:gtest_main",
         "@hexray_tools//:defs",
     ],
+)
+
+cc_test(
+    name = "sub_test",
+    srcs = ["sub_test.cc"],
+    deps = [":sub"],
 )
 
 cc_library(

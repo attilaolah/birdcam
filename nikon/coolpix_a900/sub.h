@@ -2,8 +2,9 @@
 
 #include <cstdint>
 
-extern "C" {
+namespace ls_sec {
 
-void sub_1A40(uint8_t *dst, uint64_t *src);
+uint32_t sub_1A10(uint32_t src);
+uint32_t sub_1A40(uint32_t src);
 
-}
+} // namespace ls_sec
