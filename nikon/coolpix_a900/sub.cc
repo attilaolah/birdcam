@@ -21,22 +21,6 @@ void _sub_1A40(uint8_t *dst, const uint32_t *src) {
 }
 
 // Args:
-// - dst: pointer to `n` bytes of writeable memory.
-// - src: pointer to `n` bytes of readable memory.
-// - n: how many bytes to copy.
-void _sub_1A80(uint8_t *dst, const uint8_t *src, size_t n) {
-  memcpy(dst, src, n);
-}
-
-// Args:
-// - a: pointer to `n` bytes of readable memory.
-// - b: pointer to `n` bytes of readable memory.
-// - n: how many bytes to compare.
-int _sub_1C20(const uint8_t *a, const uint8_t *b, size_t n) {
-  return memcmp(a, b, n);
-}
-
-// Args:
 // - data: pointer to 8336 bytes of readable memory.
 // - a: pointer to 8 bytes of writeable memory.
 // - b: pointer to 8 bytes of writeable memory.
@@ -60,8 +44,8 @@ void _sub_1480(const uint64_t *data, uint64_t *a, uint64_t *b) {
 namespace ls_sec {
 
 uint64_t entangle(const std::vector<uint64_t> &elements) {
-  uint64_t x = 16909060;
-  uint64_t y = 84281096;
+  uint64_t x = 0x1020304;
+  uint64_t y = 0x5060708;
 
   for (const uint64_t &elem : elements) {
     x = __bswap_32(elem & std::numeric_limits<uint32_t>::max()) ^ x;
@@ -84,14 +68,6 @@ uint32_t sub_1A40(uint32_t src) {
   uint32_t dst;
   _sub_1A40(reinterpret_cast<uint8_t *>(&dst), &src);
   return dst;
-}
-
-void sub_1A80(uint8_t *dst, const uint8_t *src, std::size_t n) {
-  _sub_1A80(dst, src, n);
-}
-
-bool sub_1C20(uint8_t *a, uint8_t *b, std::size_t n) {
-  return _sub_1C20(a, b, n) != 0;
 }
 
 } // namespace ls_sec
