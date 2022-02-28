@@ -1,10 +1,9 @@
 #include "sub.h"
 
 #include <cstdlib>
+#include <cstring>
 
 #include "code/defs.h"
-
-using std::size_t;
 
 extern "C" {
 
@@ -22,6 +21,12 @@ void _sub_1A40(uint8_t *dst, uint32_t *src) {
   dst[2] = BYTE1(*src);
   dst[3] = *src;
 }
+
+// Args:
+// - a: pointer to `n` bytes of readable memory.
+// - b: pointer to `n` bytes of readable memory.
+// - n: how many bytes to compare.
+int _sub_1C20(uint8_t *a, uint8_t *b, size_t n) { return memcmp(a, b, n); }
 }
 
 namespace ls_sec {
@@ -36,6 +41,10 @@ uint32_t sub_1A40(uint32_t src) {
   uint32_t dst;
   _sub_1A40(reinterpret_cast<uint8_t *>(&dst), &src);
   return dst;
+}
+
+bool sub_1C20(uint8_t *a, uint8_t *b, std::size_t n) {
+  return _sub_1C20(a, b, n) != 0;
 }
 
 } // namespace ls_sec
