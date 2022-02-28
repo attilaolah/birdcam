@@ -11,7 +11,7 @@ class LsSec {
 public:
   explicit LsSec(unsigned int seed) noexcept;
 
-  std::array<uint8_t, 8> stage_1();
+  uint64_t stage_1();
 
 private:
   std::array<uint8_t, 8408> data_ = {{0}};
