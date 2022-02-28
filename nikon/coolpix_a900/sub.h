@@ -2,10 +2,11 @@
 
 #include <cstdint>
 #include <utility>
+#include <vector>
 
 namespace ls_sec {
 
-uint64_t sub_A80(const uint64_t a, const uint64_t b, const uint64_t c);
+uint64_t entangle(const std::vector<uint64_t> &elements);
 std::pair<uint64_t, uint64_t> sub_1480(uint64_t a, uint64_t b);
 uint32_t sub_1A10(uint32_t src);
 uint32_t sub_1A40(uint32_t src);

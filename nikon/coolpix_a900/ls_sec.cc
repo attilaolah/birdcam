@@ -67,7 +67,7 @@ void LsSec::stage_4(uint64_t nonce, uint64_t stage_1, uint64_t stage_3) {
 }
 
 const uint64_t LsSec::hash_3(const uint64_t a, const uint64_t b) const {
-  return sub_A80(DATA_4AC0[index_], a, b);
+  return entangle({DATA_4AC0[index_], a, b});
 }
 
 const char *ErrAuth::what() const noexcept {

@@ -5,7 +5,12 @@
 namespace ls_sec {
 namespace {
 
-TEST(Sub, sub_A80) { EXPECT_EQ(sub_A80(0, 0, 0), 6291260094789511032ULL); }
+TEST(Sub, entangle) {
+  EXPECT_EQ(entangle({}), 578437695752307201ULL);
+  EXPECT_EQ(entangle({1}), 12502495346761032393ULL);
+  EXPECT_EQ(entangle({1, 2, 3}), 6787725047722962626ULL);
+  EXPECT_EQ(entangle({1, 2, 3, 4}), 16450132560130177968ULL);
+}
 
 TEST(Sub, sub_1480) {
   {

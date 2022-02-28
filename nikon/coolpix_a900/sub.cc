@@ -64,21 +64,15 @@ void _sub_1480(const uint64_t *data, uint64_t *a, uint64_t *b) {
 
 namespace ls_sec {
 
-uint64_t sub_A80(const uint64_t a, const uint64_t b, const uint64_t c) {
+uint64_t entangle(const std::vector<uint64_t> &elements) {
   uint64_t x = 16909060;
   uint64_t y = 84281096;
 
-  x = __bswap_32(a & std::numeric_limits<uint32_t>::max()) ^ x;
-  y = __bswap_32(a >> 32) ^ y;
-  _sub_1480(DATA_2A00.data(), &x, &y);
-
-  x = __bswap_32(b & std::numeric_limits<uint32_t>::max()) ^ x;
-  y = __bswap_32(b >> 32) ^ y;
-  _sub_1480(DATA_2A00.data(), &x, &y);
-
-  x = __bswap_32(c & std::numeric_limits<uint32_t>::max()) ^ x;
-  y = __bswap_32(c >> 32) ^ y;
-  _sub_1480(DATA_2A00.data(), &x, &y);
+  for (const uint64_t &elem : elements) {
+    x = __bswap_32(elem & std::numeric_limits<uint32_t>::max()) ^ x;
+    y = __bswap_32(elem >> 32) ^ y;
+    _sub_1480(DATA_2A00.data(), &x, &y);
+  }
 
   uint64_t dst;
   _sub_1A40((uint8_t *)&dst, (uint32_t *)&x);
