@@ -11,7 +11,7 @@ namespace {
 uint64_t urand64() { return ((uint64_t)rand() << 32) | rand(); }
 } // namespace
 
-LsSec::LsSec(unsigned int seed) : stage_(Stage::STAGE_1), index_(0) {
+LsSec::LsSec(uint32_t seed) : stage_(Stage::STAGE_1), index_(0) {
   if (seed) {
     std::srand(seed);
   }

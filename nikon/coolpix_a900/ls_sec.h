@@ -9,7 +9,7 @@ namespace ls_sec {
 
 class LsSec {
 public:
-  explicit LsSec(unsigned int seed);
+  explicit LsSec(uint32_t seed);
 
   uint64_t stage_1();
 
