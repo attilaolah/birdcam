@@ -6,6 +6,6 @@
 
 namespace ls_sec {
 
-uint64_t entangle(const std::vector<uint64_t> &elements);
+uint64_t entangle(const std::vector<uint64_t> &elements) noexcept;
 
-} // namespace ls_sec
+}  // namespace ls_sec

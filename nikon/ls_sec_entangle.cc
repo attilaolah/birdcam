@@ -10,7 +10,7 @@ namespace {
 // Args:
 // - a: pointer to 4 bytes of writeable memory.
 // - b: pointer to 4 bytes of writeable memory.
-void entangle_2(uint32_t *a, uint32_t *b) {
+void entangle_2(uint32_t *a, uint32_t *b) noexcept {
   uint32_t a_1 = *a;
   uint32_t b_1 = *b;
   for (size_t i = 0; i < 16; i++) {
@@ -25,9 +25,9 @@ void entangle_2(uint32_t *a, uint32_t *b) {
   *b = 0x096EA497E ^ a_1;
   *a = 0x07C3F81CA ^ b_1;
 }
-} // namespace
+}  // namespace
 
-uint64_t entangle(const std::vector<uint64_t> &elements) {
+uint64_t entangle(const std::vector<uint64_t> &elements) noexcept {
   uint32_t x = 0x1020304;
   uint32_t y = 0x5060708;
 
@@ -40,4 +40,4 @@ uint64_t entangle(const std::vector<uint64_t> &elements) {
   return (uint64_t)__bswap_32(x) | (uint64_t)__bswap_32(y) << 32;
 }
 
-} // namespace ls_sec
+}  // namespace ls_sec

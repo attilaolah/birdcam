@@ -66,4 +66,4 @@ Java_com_nikon_LsSec_jniLsSec_SetContextData(JNIEnv *, jobject, jbyteArray,
                                              jboolean);
 }
 
-#endif // LS_SEC_JNI_H
+#endif  // LS_SEC_JNI_H

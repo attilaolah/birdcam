@@ -1,4 +1,4 @@
-load("@io_bazel_rules_go//go:def.bzl", "go_binary")
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 
 cc_library(
     name = "ls_sec",
@@ -16,11 +16,18 @@ cc_test(
     ],
 )
 
-go_binary(
+go_library(
     name = "ls_sec_go",
-    srcs = ["ls_sec.go"    ],
+    srcs = ["ls_sec.go"],
     cdeps = [":ls_sec_cgo"],
     cgo = True,
+    importpath = "github.com/attilaolah/birdcam/nikon",
+)
+
+go_test(
+    name = "ls_sec_go_test",
+    srcs = ["ls_sec_test.go"],
+    deps = [":ls_sec_go"],
 )
 
 cc_library(
@@ -29,7 +36,6 @@ cc_library(
     hdrs = ["ls_sec_cgo.h"],
     deps = [":ls_sec"],
 )
-
 
 cc_library(
     name = "ls_sec_jni",

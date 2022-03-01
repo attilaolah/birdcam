@@ -3,15 +3,15 @@
 #include <cstdlib>
 #include <cstring>
 
-#include "ls_sec_entangle.h"
 #include "ls_sec_data.h"
+#include "ls_sec_entangle.h"
 
 namespace ls_sec {
 namespace {
 uint64_t urand64() { return ((uint64_t)rand() << 32) | rand(); }
-} // namespace
+}  // namespace
 
-LsSec::LsSec(uint32_t seed) : stage_(Stage::STAGE_1), index_(0) {
+LsSec::LsSec(uint32_t seed) noexcept : stage_(Stage::STAGE_1), index_(0) {
   if (seed) {
     std::srand(seed);
   }
@@ -70,12 +70,22 @@ const uint64_t LsSec::hash_3(const uint64_t a, const uint64_t b) const {
   return entangle({SEED_8[index_], a, b});
 }
 
+Error::Error(const Status &status) noexcept : status_(status) {}
+
+const int8_t Error::status_code() const noexcept {
+  return static_cast<int8_t>(status_);
+}
+
+ErrAuth::ErrAuth() noexcept : Error(Status::ERR_AUTH) {}
+
 const char *ErrAuth::what() const noexcept {
   return "ls_sec error: authentication error";
 }
+
+ErrWrongStage::ErrWrongStage() noexcept : Error(Status::ERR_WRONG_STAGE) {}
 
 const char *ErrWrongStage::what() const noexcept {
   return "ls_sec error: wrong stage";
 }
 
-} // namespace ls_sec
+}  // namespace ls_sec
