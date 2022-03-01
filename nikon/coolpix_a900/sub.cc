@@ -19,26 +19,6 @@ void _sub_1A40(uint8_t *dst, const uint32_t src) {
   dst[2] = BYTE1(src);
   dst[3] = src;
 }
-
-// Args:
-// - a: pointer to 4 bytes of writeable memory.
-// - b: pointer to 4 bytes of writeable memory.
-void entangle_2(uint32_t *a, uint32_t *b) {
-  uint32_t a_1 = *a;
-  uint32_t b_1 = *b;
-  for (size_t i = 0; i < 16; i++) {
-    uint32_t prev = ls_sec::R16[i] ^ a_1;
-    size_t o_0 = 0x012 + BYTE3(prev);
-    size_t o_1 = 0x112 + BYTE2(prev);
-    size_t o_2 = 0x212 + BYTE1(prev);
-    size_t o_3 = 0x312 + (uint8_t)prev;
-    a_1 = b_1 ^ (DATA_2A00[o_3] +
-                 (DATA_2A00[o_2] ^ (DATA_2A00[o_1] + DATA_2A00[o_0])));
-    b_1 = prev;
-  }
-  *b = 0x096EA497E ^ a_1;
-  *a = 0x07C3F81CA ^ b_1;
-}
 }
 
 namespace ls_sec {
@@ -53,15 +33,27 @@ uint64_t entangle(const std::vector<uint64_t> &elements) {
     entangle_2(&x, &y);
   }
 
-  uint64_t dst;
-  _sub_1A40((uint8_t *)&dst, x);
-  _sub_1A40((uint8_t *)&dst + 4, y);
-  return dst;
+  return (uint64_t)sub_1A40(x) | (uint64_t)sub_1A40(y) << 32;
 }
 
-std::pair<uint32_t, uint32_t> sub_1480(uint32_t a, uint32_t b) {
-  entangle_2(&a, &b);
-  return std::make_pair(a, b);
+// Args:
+// - a: pointer to 4 bytes of writeable memory.
+// - b: pointer to 4 bytes of writeable memory.
+void entangle_2(uint32_t *a, uint32_t *b) {
+  uint32_t a_1 = *a;
+  uint32_t b_1 = *b;
+  for (size_t i = 0; i < 16; i++) {
+    uint32_t prev = R16[i] ^ a_1;
+    size_t o_0 = 0x000 + BYTE3(prev);
+    size_t o_1 = 0x100 + BYTE2(prev);
+    size_t o_2 = 0x200 + BYTE1(prev);
+    size_t o_3 = 0x300 + (uint8_t)prev;
+    a_1 = b_1 ^ (DATA_2A00[o_3] +
+                 (DATA_2A00[o_2] ^ (DATA_2A00[o_1] + DATA_2A00[o_0])));
+    b_1 = prev;
+  }
+  *b = 0x096EA497E ^ a_1;
+  *a = 0x07C3F81CA ^ b_1;
 }
 
 uint32_t sub_1A40(uint32_t src) {

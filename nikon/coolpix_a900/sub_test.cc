@@ -12,19 +12,6 @@ TEST(Sub, entangle) {
   EXPECT_EQ(entangle({1, 2, 3, 4}), 5425026146954082698LLU);
 }
 
-TEST(Sub, sub_1480) {
-  {
-    const auto pair = sub_1480(0, 0);
-    EXPECT_EQ(pair.first, 1725163392);
-    EXPECT_EQ(pair.second, 1863468925);
-  }
-  {
-    const auto pair = sub_1480(1234, 5678);
-    EXPECT_EQ(pair.first, 2209797175);
-    EXPECT_EQ(pair.second, 542139782);
-  }
-}
-
 TEST(Sub, sub_1A40) {
   EXPECT_EQ(sub_1A40(0x00000000), 0x00000000);
   EXPECT_EQ(sub_1A40(0xaabbccdd), 0xddccbbaa);
