@@ -3,10 +3,6 @@ package ls_sec
 // #include "nikon/ls_sec_cgo.h"
 import "C"
 
-import (
-	"fmt"
-)
-
 const OK = 0
 
 type LsSec struct {
@@ -21,8 +17,7 @@ var (
 )
 
 func (err Error) Error() string {
-	// TODO: Pull error codes from cgo!
-	return fmt.Sprintf("ls_sec error: %d", int8(err))
+	return C.GoString(C.ls_sec_error(C.int8_t(err)))
 }
 
 func New(seed uint32) *LsSec {

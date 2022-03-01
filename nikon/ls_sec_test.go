@@ -48,7 +48,7 @@ func TestStage2(t *testing.T) {
 	} else if want := uint64(7749363893351949254); nonce != want {
 		t.Errorf("Stage2()[0]: want %d, got %d", want, nonce)
 	} else if want := uint64(3692570941250695308); device_id != want {
-		t.Errorf("Stage2()[1]: want :d, got: %d", want, device_id)
+		t.Errorf("Stage2()[1]: want %d, got: %d", want, device_id)
 	}
 
 	// Calling Stage2() again: wrong stage.

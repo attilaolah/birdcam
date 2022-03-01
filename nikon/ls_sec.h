@@ -6,6 +6,11 @@
 
 namespace ls_sec {
 
+static constexpr char kMsgOk[] = "ls_sec: ok";
+static constexpr char kMsgAuth[] = "ls_sec: authentication error";
+static constexpr char kMsgWrongStage[] = "ls_sec: wrong stage error";
+static constexpr char kMsgUnknown[] = "ls_sec: unknown error";
+
 class LsSec {
  public:
   explicit LsSec(uint32_t seed) noexcept;
@@ -42,6 +47,7 @@ class Error {
  public:
   Error(const Status &status) noexcept;
   const int8_t status_code() const noexcept;
+  const char* status_message() const noexcept;
 
  protected:
   Status status_;
