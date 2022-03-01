@@ -173,11 +173,17 @@ func main() {
 		return
 	}
 
-	fmt.Println("Connected, fetching device info.")
-	if info, err := cam.DeviceInformation(); err == nil {
-		fmt.Printf("Device Info: %#v\n", info)
-	} else {
-		fmt.Println("error getting device information:", err)
+	fmt.Println("Connected.")
+	//fmt.Println("Connected, fetching device info.")
+	//if info, err := cam.DeviceInformation(); err == nil {
+	//	fmt.Printf("Device Info: %#v\n", info)
+	//} else {
+	//	fmt.Println("error getting device information:", err)
+	//}
+	p, err := cam.DiscoverProfile(false)
+	if err != nil {
+		fmt.Println("failed to discover profile:", err)
+		return
 	}
 
 	quit := make(chan os.Signal)
@@ -185,7 +191,7 @@ func main() {
 	quitting := false
 
 	fmt.Printf("Notification-Subscribing @ %s: ", LSSControlPoint.UUID)
-	if c := cam.Profile().FindCharacteristic(LSSControlPoint); c == nil {
+	if c := p.FindCharacteristic(LSSControlPoint); c == nil {
 		fmt.Println("characteristic not found!")
 	} else {
 		if c.Property|ble.CharNotify == 0 {
@@ -211,7 +217,7 @@ func main() {
 	devID := rand.Uint64()
 
 	fmt.Printf("Indication-Subscribing @ %s: ", Authentication.UUID)
-	if c := cam.Profile().FindCharacteristic(Authentication); c == nil {
+	if c := p.FindCharacteristic(Authentication); c == nil {
 		fmt.Println("characteristic not found!")
 	} else {
 		if c.Property|ble.CharIndicate == 0 {
@@ -223,40 +229,107 @@ func main() {
 				fmt.Println("request length != 17:", len(req))
 				return
 			}
-			if req[0] != 2 {
-				fmt.Println("expected stage 2, got:", req[0])
+			if req[0] == 2 {
+				fmt.Println("response: stage 2")
+				camNonce := binary.LittleEndian.Uint64(req[1:])
+				camDevID := binary.LittleEndian.Uint64(req[9:])
+				fmt.Printf("received nonce = %d, dev_id = %d\n", camNonce, camDevID)
+
+				stage_3, err := ls.Stage3(camNonce, nonce, camDevID)
+				if err != nil {
+					fmt.Println("stage_3 error:", err)
+				}
+				fmt.Println("stage_3:", stage_3)
+
+				buf := make([]byte, 17)
+				buf[0] = 0x03 // stage_3
+				binary.LittleEndian.PutUint64(buf[1:], nonce)
+				binary.LittleEndian.PutUint64(buf[9:], stage_3)
+				fmt.Printf("sending nonce = %d, stage_3 = %d\n", nonce, stage_3)
+
+				go func() {
+					if c := p.FindCharacteristic(Authentication); c == nil {
+						fmt.Println("characteristic not found!")
+					} else {
+						if c.Property|ble.CharWrite == 0 {
+							fmt.Println("characteristic does not support writing!")
+						}
+						if err := cam.WriteCharacteristic(c, buf, false); err != nil {
+							fmt.Println("error:", err)
+						} else {
+							fmt.Println("\nok!")
+						}
+					}
+				}()
 				return
 			}
-			camNonce := binary.LittleEndian.Uint64(req[1:])
-			camDevID := binary.LittleEndian.Uint64(req[9:])
-			fmt.Printf("received nonce = %d, dev_id = %d\n", camNonce, camDevID)
+			if req[0] == 4 {
+				fmt.Println("stage_4:", binary.LittleEndian.Uint64(req[9:]))
 
-			stage_3, err := ls.Stage3(camNonce, nonce, camDevID)
-			if err != nil {
-				fmt.Println("stage_3 error:", err)
-			}
-			fmt.Println("stage_3:", stage_3)
+				// 32 zero-padded bytes, containing "Android Pixel 5 9949".
+				buf := make([]byte, 32)
+				copy(buf, "Android_Pixel_5_5797")
+				go func() {
+					fmt.Println("writing client_device_name")
 
-			buf := make([]byte, 17)
-			buf[0] = 0x03 // stage_3
-			binary.LittleEndian.PutUint64(buf[1:], nonce)
-			binary.LittleEndian.PutUint64(buf[9:], stage_3)
-			fmt.Printf("sending nonce = %d, stage_3 = %d\n", nonce, stage_3)
-
-			go func() {
-				if c := cam.Profile().FindCharacteristic(Authentication); c == nil {
-					fmt.Println("characteristic not found!")
-				} else {
-					if c.Property|ble.CharWrite == 0 {
-						fmt.Println("characteristic does not support writing!")
-					}
-					if err := cam.WriteCharacteristic(c, buf, false); err != nil {
-						fmt.Println("error:", err)
+					if c := p.FindCharacteristic(ClientDeviceName); c == nil {
+						fmt.Println("characteristic not found!")
 					} else {
-						fmt.Println("ok!")
+						if c.Property|ble.CharWrite == 0 {
+							fmt.Println("characteristic does not support writing!")
+						}
+						if err := cam.WriteCharacteristic(c, buf, false); err != nil {
+							fmt.Println("error:", err)
+						} else {
+							fmt.Println("ok!")
+
+							fmt.Println("reading server_device_name")
+							if c := p.FindCharacteristic(ServerDeviceName); c == nil {
+								fmt.Println("characteristic not found!")
+							} else if c.Property|ble.CharRead == 0 {
+								fmt.Println("characteristic does not support reading!")
+							} else {
+								if buf, err := cam.ReadCharacteristic(c); err != nil {
+									fmt.Println("error:", err)
+								} else {
+									fmt.Println("\nok! server_device_name:", strings.TrimSpace(strings.Trim(string(buf), "\x00")))
+
+									buf := make([]byte, 10)
+									now := time.Now()
+									utc := now.UTC()
+									_, offset := now.Zone()
+									binary.LittleEndian.PutUint16(buf, uint16(utc.Year()))
+									buf[2] = uint8(utc.Month())
+									buf[3] = uint8(utc.Day())
+									buf[4] = uint8(utc.Hour())
+									buf[5] = uint8(utc.Minute())
+									buf[6] = uint8(utc.Second())
+									buf[8] = uint8(time.Duration(offset) * time.Second / time.Hour)
+									buf[9] = uint8((time.Duration(offset) * time.Second / time.Minute) % (time.Hour / time.Minute))
+									// TODO:
+
+									fmt.Println("writing current_time:", now, "encoded:", buf)
+									if c := p.FindCharacteristic(CurrentTime); c == nil {
+										fmt.Println("characteristic not found!")
+									} else {
+										if c.Property|ble.CharWrite == 0 {
+											fmt.Println("characteristic does not support writing!")
+										}
+										if err := cam.WriteCharacteristic(c, buf, false); err != nil {
+											fmt.Println("error:", err)
+										} else {
+											fmt.Println("ok!")
+										}
+									}
+
+								}
+							}
+						}
 					}
-				}
-			}()
+				}()
+				return
+			}
+			fmt.Println("received unexpected stage:", req[0])
 		}); err != nil {
 			fmt.Println("error:", err)
 		} else {
@@ -272,7 +345,7 @@ func main() {
 	binary.LittleEndian.PutUint64(buf[9:], devID)
 	fmt.Printf("sending nonce = %d, dev_id = %d\n", nonce, devID)
 
-	if c := cam.Profile().FindCharacteristic(Authentication); c == nil {
+	if c := p.FindCharacteristic(Authentication); c == nil {
 		fmt.Println("characteristic not found!")
 	} else {
 		if c.Property|ble.CharWrite == 0 {
@@ -288,7 +361,7 @@ func main() {
 	// Enabling Wi-Fi won't work until authentication is completed.
 
 	//fmt.Printf("Enabling WiFi: ")
-	//if c := cam.Profile().FindCharacteristic(ConnectionEstablishment); c == nil {
+	//if c := p.FindCharacteristic(ConnectionEstablishment); c == nil {
 	//	fmt.Println("characteristic not found!")
 	//} else {
 	//	if c.Property|ble.CharWrite == 0 {
