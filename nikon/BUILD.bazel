@@ -1,0 +1,63 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary")
+
+cc_library(
+    name = "ls_sec",
+    srcs = ["ls_sec.cc"],
+    hdrs = ["ls_sec.h"],
+    deps = [":sub"],
+)
+
+cc_test(
+    name = "ls_sec_test",
+    srcs = ["ls_sec_test.cc"],
+    deps = [
+        ":ls_sec",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+go_binary(
+    name = "ls_sec_go",
+    srcs = ["ls_sec.go"    ],
+    cdeps = [":ls_sec_cgo"],
+    cgo = True,
+)
+
+cc_library(
+    name = "ls_sec_cgo",
+    srcs = ["ls_sec_cgo.cc"],
+    hdrs = ["ls_sec_cgo.h"],
+    deps = [":ls_sec"],
+)
+
+
+cc_library(
+    name = "ls_sec_jni",
+    hdrs = ["ls_sec_jni.h"],
+    deps = [
+        "//third_party:jni",
+        "//third_party/snapbridge:ls_sec_jni",
+    ],
+)
+
+cc_library(
+    name = "sub",
+    srcs = ["sub.cc"],
+    hdrs = ["sub.h"],
+    deps = [":sub_data"],
+)
+
+cc_test(
+    name = "sub_test",
+    srcs = ["sub_test.cc"],
+    deps = [
+        ":sub",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_library(
+    name = "sub_data",
+    srcs = ["sub_data.cc"],
+    hdrs = ["sub_data.h"],
+)

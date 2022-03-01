@@ -1,0 +1,27 @@
+package(default_visibility = ["//nikon:__pkg__"])
+
+cc_library(
+    name = "jni",
+    hdrs = [
+        ":jni_h",
+        ":jni_md_h",
+    ],
+    includes = ["."],
+    target_compatible_with = [
+        "@platforms//os:linux",
+    ],
+)
+
+genrule(
+    name = "jni_h",
+    srcs = ["@bazel_tools//tools/jdk:jni_header"],
+    outs = ["jni.h"],
+    cmd = "cp -f $< $@",
+)
+
+genrule(
+    name = "jni_md_h",
+    srcs = ["@bazel_tools//tools/jdk:jni_md_header-linux"],
+    outs = ["jni_md.h"],
+    cmd = "cp -f $< $@",
+)

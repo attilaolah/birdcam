@@ -1,6 +1,6 @@
 package main
 
-// #include "nikon/coolpix_a900/ls_sec_cgo.h"
+// #include "nikon/ls_sec_cgo.h"
 import "C"
 
 import (
