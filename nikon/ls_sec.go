@@ -12,9 +12,14 @@ type LsSec struct {
 type Error int8
 
 var (
-	ErrAuth       Error = -102
-	ErrWrongStage Error = -103
+	ErrAuth       Error
+	ErrWrongStage Error
 )
+
+func init() {
+	ErrAuth = Error(C.ls_sec_err_auth)
+	ErrWrongStage = Error(C.ls_sec_err_wrong_stage)
+}
 
 func (err Error) Error() string {
 	return C.GoString(C.ls_sec_error(C.int8_t(err)))

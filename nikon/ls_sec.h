@@ -47,7 +47,7 @@ class Error {
  public:
   Error(const Status &status) noexcept;
   const int8_t status_code() const noexcept;
-  const char* status_message() const noexcept;
+  const char *status_message() const noexcept;
 
  protected:
   Status status_;

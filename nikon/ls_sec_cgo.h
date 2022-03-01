@@ -6,6 +6,9 @@ extern "C" {
 
 typedef void *LsSec;
 
+extern int8_t ls_sec_err_auth;
+extern int8_t ls_sec_err_wrong_stage;
+
 LsSec ls_sec_new(uint32_t seed);
 void ls_sec_free(LsSec ptr);
 
@@ -17,7 +20,7 @@ int8_t ls_sec_stage_3(LsSec ptr, uint64_t nonce, uint64_t stage_1,
 int8_t ls_sec_stage_4(LsSec ptr, uint64_t nonce, uint64_t stage_1,
                       uint64_t stage_3);
 
-const char* ls_sec_error(int8_t code);
+const char *ls_sec_error(int8_t code);
 
 #ifdef __cplusplus
 }

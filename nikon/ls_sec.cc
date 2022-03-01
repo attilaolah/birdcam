@@ -76,29 +76,25 @@ const int8_t Error::status_code() const noexcept {
   return static_cast<int8_t>(status_);
 }
 
-const char* Error::status_message() const noexcept {
+const char *Error::status_message() const noexcept {
   switch (status_) {
     case Status::OK:
       return kMsgOk;
     case Status::ERR_AUTH:
-        return kMsgAuth;
+      return kMsgAuth;
     case Status::ERR_WRONG_STAGE:
-        return kMsgWrongStage;
+      return kMsgWrongStage;
     default:
-        return kMsgUnknown;
+      return kMsgUnknown;
   }
 }
 
 ErrAuth::ErrAuth() noexcept : Error(Status::ERR_AUTH) {}
 
-const char *ErrAuth::what() const noexcept {
-  return status_message();
-}
+const char *ErrAuth::what() const noexcept { return status_message(); }
 
 ErrWrongStage::ErrWrongStage() noexcept : Error(Status::ERR_WRONG_STAGE) {}
 
-const char *ErrWrongStage::what() const noexcept {
-  return status_message();
-}
+const char *ErrWrongStage::what() const noexcept { return status_message(); }
 
 }  // namespace ls_sec

@@ -4,6 +4,10 @@
 
 #define OK 0
 
+int8_t ls_sec_err_auth = static_cast<int8_t>(ls_sec::Status::ERR_AUTH);
+int8_t ls_sec_err_wrong_stage =
+    static_cast<int8_t>(ls_sec::Status::ERR_WRONG_STAGE);
+
 LsSec ls_sec_new(uint32_t seed) {
   ls_sec::LsSec *ret = new ls_sec::LsSec(seed);
   return (void *)ret;
@@ -60,6 +64,6 @@ int8_t ls_sec_stage_4(LsSec ptr, uint64_t nonce, uint64_t stage_1,
   return OK;
 }
 
-const char* ls_sec_error(int8_t code) {
+const char *ls_sec_error(int8_t code) {
   return ls_sec::Error(static_cast<ls_sec::Status>(code)).status_message();
 }
