@@ -40,11 +40,7 @@ uint64_t entangle(const std::vector<uint64_t> &elements) {
     entangle_2(&x, &y);
   }
 
-  return (uint64_t)sub_1A40(x) | (uint64_t)sub_1A40(y) << 32;
-}
-
-uint32_t sub_1A40(uint32_t src) {
-  return __bswap_32(src);
+  return (uint64_t)__bswap_32(x) | (uint64_t)__bswap_32(y) << 32;
 }
 
 } // namespace ls_sec

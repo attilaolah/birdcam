@@ -12,12 +12,5 @@ TEST(Sub, entangle) {
   EXPECT_EQ(entangle({1, 2, 3, 4}), 5425026146954082698LLU);
 }
 
-TEST(Sub, sub_1A40) {
-  EXPECT_EQ(sub_1A40(0x00000000), 0x00000000);
-  EXPECT_EQ(sub_1A40(0xaabbccdd), 0xddccbbaa);
-  EXPECT_EQ(sub_1A40(0x12345678), 0x78563412);
-  EXPECT_EQ(sub_1A40(0xffffffff), 0xffffffff);
-}
-
 } // namespace
 } // namespace ls_sec
