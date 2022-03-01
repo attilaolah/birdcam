@@ -69,7 +69,7 @@ var (
 	LSSControlPoint         = ble.NewCharacteristic(UUID(0x2008)) // 0x52 0x53 0x54
 	LSSFeature              = ble.NewCharacteristic(UUID(0x2009)) // 0x55 0x56
 	BatteryLevel            = ble.NewCharacteristic(UUID(0x2A19)) // 0x57 0x58
-	LSSSerialNumberString   = ble.NewCharacteristic(UUID(0x200b)) // 0x59 5x5a
+	LSSSerialNumberString   = ble.NewCharacteristic(UUID(0x200b)) // 0x59 0x5a
 
 	// Advertised descriptors:
 	// ClientCharacteristicConfig [0x2902] at handles: 0x0f, 0x43, 0x54.
@@ -180,10 +180,12 @@ func main() {
 	//} else {
 	//	fmt.Println("error getting device information:", err)
 	//}
-	p, err := cam.DiscoverProfile(false)
-	if err != nil {
-		fmt.Println("failed to discover profile:", err)
-		return
+	p := cam.Profile()
+	if p == nil {
+		if p, err = cam.DiscoverProfile(false); err != nil {
+			fmt.Println("failed to discover profile:", err)
+			return
+		}
 	}
 
 	quit := make(chan os.Signal)
@@ -266,12 +268,27 @@ func main() {
 			if req[0] == 4 {
 				fmt.Println("stage_4:", binary.LittleEndian.Uint64(req[9:]))
 
-				// 32 zero-padded bytes, containing "Android Pixel 5 9949".
-				buf := make([]byte, 32)
-				copy(buf, "Android_Pixel_5_5797")
 				go func() {
+					fmt.Println("reading battery_level")
+					if c := p.FindCharacteristic(BatteryLevel); c == nil {
+						fmt.Println("characteristic not found!")
+					} else if c.Property|ble.CharRead == 0 {
+						fmt.Println("characteristic does not support reading!")
+					} else {
+						if buf, err := cam.ReadCharacteristic(c); err != nil {
+							fmt.Println("error:", err)
+						} else if len(buf) != 1 {
+							fmt.Printf("error: battery_level: got %d bytes: %#v\n", len(buf), buf)
+						} else {
+							fmt.Println("\nok! battery_level [%]:", buf[0])
+						}
+					}
+					time.Sleep(time.Second)
+
 					fmt.Println("writing client_device_name")
 
+					buf := make([]byte, 32)
+					copy(buf, "Android_Pixel_5_5797")
 					if c := p.FindCharacteristic(ClientDeviceName); c == nil {
 						fmt.Println("characteristic not found!")
 					} else {
@@ -282,9 +299,96 @@ func main() {
 							fmt.Println("error:", err)
 						} else {
 							fmt.Println("ok!")
+						}
+					}
+					time.Sleep(time.Second)
 
-							fmt.Println("reading server_device_name")
-							if c := p.FindCharacteristic(ServerDeviceName); c == nil {
+					/*
+						fmt.Println("reading server_device_name")
+						if c := p.FindCharacteristic(ServerDeviceName); c == nil {
+							fmt.Println("characteristic not found!")
+						} else if c.Property|ble.CharRead == 0 {
+							fmt.Println("characteristic does not support reading!")
+						} else {
+							if buf, err := cam.ReadCharacteristic(c); err != nil {
+								fmt.Println("error:", err)
+							} else {
+								fmt.Println("\nok! server_device_name:", strings.TrimSpace(strings.Trim(string(buf), "\x00")))
+							}
+						}
+						time.Sleep(time.Second)
+					*/
+
+					buf = make([]byte, 10)
+					now := time.Now()
+					utc := now.UTC()
+					_, offset := now.Zone()
+					binary.LittleEndian.PutUint16(buf, uint16(utc.Year()))
+					buf[2] = uint8(utc.Month())
+					buf[3] = uint8(utc.Day())
+					buf[4] = uint8(utc.Hour())
+					buf[5] = uint8(utc.Minute())
+					buf[6] = uint8(utc.Second())
+					buf[8] = uint8(time.Duration(offset) * time.Second / time.Hour)
+					buf[9] = uint8((time.Duration(offset) * time.Second / time.Minute) % (time.Hour / time.Minute))
+
+					fmt.Println("writing current_time:", now, "encoded:", buf)
+					if c := p.FindCharacteristic(CurrentTime); c == nil {
+						fmt.Println("characteristic not found!")
+					} else {
+						if c.Property|ble.CharWrite == 0 {
+							fmt.Println("characteristic does not support writing!")
+						}
+						if err := cam.WriteCharacteristic(c, buf, false); err != nil {
+							fmt.Println("error:", err)
+						} else {
+							fmt.Println("ok!")
+						}
+					}
+					time.Sleep(time.Second)
+
+					/*
+						fmt.Println("reading lss_feature")
+						if c := p.FindCharacteristic(LSSFeature); c == nil {
+							fmt.Println("characteristic not found!")
+						} else if c.Property|ble.CharRead == 0 {
+							fmt.Println("characteristic does not support reading!")
+						} else {
+							if buf, err := cam.ReadCharacteristic(c); err != nil {
+								fmt.Println("error:", err)
+							} else {
+								fmt.Println("\nok! lss_feature:", buf)
+							}
+						}
+						time.Sleep(time.Second)
+
+						fmt.Println("reading manufacturer_name_string")
+						if s, err := cam.ReadString(ManufacturerNameString); err != nil {
+							fmt.Println("failed to read manufacturer name:", err)
+						} else {
+							fmt.Println("manufacturer_name_string:", s)
+						}
+						time.Sleep(time.Second)
+
+						fmt.Println("reading lss_serial_number_string")
+						if s, err := cam.ReadString(LSSSerialNumberString); err != nil {
+							fmt.Println("failed to read serial number:", err)
+						} else {
+							fmt.Println("lss_serial_number_string:", s)
+						}
+						time.Sleep(time.Second)
+
+						fmt.Println("reading firmware_revision_string")
+						if s, err := cam.ReadString(FirmwareRevisionString); err != nil {
+							fmt.Println("failed to read serial number:", err)
+						} else {
+							fmt.Println("firmware_revision_string:", s)
+						}
+						time.Sleep(time.Second)
+
+						for i := 0; i < 3; i++ {
+							fmt.Println("reading lss_feature")
+							if c := p.FindCharacteristic(LSSFeature); c == nil {
 								fmt.Println("characteristic not found!")
 							} else if c.Property|ble.CharRead == 0 {
 								fmt.Println("characteristic does not support reading!")
@@ -292,40 +396,48 @@ func main() {
 								if buf, err := cam.ReadCharacteristic(c); err != nil {
 									fmt.Println("error:", err)
 								} else {
-									fmt.Println("\nok! server_device_name:", strings.TrimSpace(strings.Trim(string(buf), "\x00")))
-
-									buf := make([]byte, 10)
-									now := time.Now()
-									utc := now.UTC()
-									_, offset := now.Zone()
-									binary.LittleEndian.PutUint16(buf, uint16(utc.Year()))
-									buf[2] = uint8(utc.Month())
-									buf[3] = uint8(utc.Day())
-									buf[4] = uint8(utc.Hour())
-									buf[5] = uint8(utc.Minute())
-									buf[6] = uint8(utc.Second())
-									buf[8] = uint8(time.Duration(offset) * time.Second / time.Hour)
-									buf[9] = uint8((time.Duration(offset) * time.Second / time.Minute) % (time.Hour / time.Minute))
-									// TODO:
-
-									fmt.Println("writing current_time:", now, "encoded:", buf)
-									if c := p.FindCharacteristic(CurrentTime); c == nil {
-										fmt.Println("characteristic not found!")
-									} else {
-										if c.Property|ble.CharWrite == 0 {
-											fmt.Println("characteristic does not support writing!")
-										}
-										if err := cam.WriteCharacteristic(c, buf, false); err != nil {
-											fmt.Println("error:", err)
-										} else {
-											fmt.Println("ok!")
-										}
-									}
-
+									fmt.Println("\nok! lss_feature:", buf)
 								}
 							}
+							time.Sleep(time.Second)
+						}
+
+						fmt.Println("fetching device info")
+						if info, err := cam.DeviceInformation(); err == nil {
+							fmt.Printf("Device Info: %#v\n", info)
+						} else {
+							fmt.Println("error getting device information:", err)
+						}
+					*/
+
+					fmt.Println("reading connection_configuration")
+					if c := p.FindCharacteristic(ConnectionConfiguration); c == nil {
+						fmt.Println("characteristic not found!")
+					} else if c.Property|ble.CharRead == 0 {
+						fmt.Println("characteristic does not support reading!")
+					} else {
+						if buf, err := cam.ReadCharacteristic(c); err != nil {
+							fmt.Println("error:", err)
+						} else {
+							fmt.Println("\nok! connection_configuration:", buf)
 						}
 					}
+					time.Sleep(time.Second)
+
+					fmt.Println("writing connection_establishment")
+					if c := p.FindCharacteristic(ConnectionEstablishment); c == nil {
+						fmt.Println("characteristic not found!")
+					} else {
+						if c.Property|ble.CharWrite == 0 {
+							fmt.Println("characteristic does not support writing!")
+						}
+						if err := cam.WriteCharacteristic(c, []byte{0x01}, false); err != nil {
+							fmt.Println("error:", err)
+						} else {
+							fmt.Println("\nok!")
+						}
+					}
+
 				}()
 				return
 			}
