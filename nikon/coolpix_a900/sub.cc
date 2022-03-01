@@ -22,20 +22,7 @@ void _sub_1A40(uint8_t *dst, const uint32_t src) {
 }
 
 namespace ls_sec {
-
-uint64_t entangle(const std::vector<uint64_t> &elements) {
-  uint32_t x = 0x1020304;
-  uint32_t y = 0x5060708;
-
-  for (const uint64_t &elem : elements) {
-    x = __bswap_32(elem & std::numeric_limits<uint32_t>::max()) ^ x;
-    y = __bswap_32(elem >> 32) ^ y;
-    entangle_2(&x, &y);
-  }
-
-  return (uint64_t)sub_1A40(x) | (uint64_t)sub_1A40(y) << 32;
-}
-
+namespace {
 // Args:
 // - a: pointer to 4 bytes of writeable memory.
 // - b: pointer to 4 bytes of writeable memory.
@@ -54,6 +41,20 @@ void entangle_2(uint32_t *a, uint32_t *b) {
   }
   *b = 0x096EA497E ^ a_1;
   *a = 0x07C3F81CA ^ b_1;
+}
+} // namespace
+
+uint64_t entangle(const std::vector<uint64_t> &elements) {
+  uint32_t x = 0x1020304;
+  uint32_t y = 0x5060708;
+
+  for (const uint64_t &elem : elements) {
+    x = __bswap_32(elem & std::numeric_limits<uint32_t>::max()) ^ x;
+    y = __bswap_32(elem >> 32) ^ y;
+    entangle_2(&x, &y);
+  }
+
+  return (uint64_t)sub_1A40(x) | (uint64_t)sub_1A40(y) << 32;
 }
 
 uint32_t sub_1A40(uint32_t src) {
