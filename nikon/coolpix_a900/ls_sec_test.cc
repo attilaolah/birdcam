@@ -24,7 +24,7 @@ TEST(LsSec, stage_2) {
 
   const std::pair<uint64_t, uint64_t> stage_2 = LsSec(1).stage_2(stage_1);
   EXPECT_EQ(stage_2.first, 7749363893351949254LLU);
-  EXPECT_EQ(stage_2.second, 14699840007999232621LLU);
+  EXPECT_EQ(stage_2.second, 3692570941250695308LLU);
 
   // Calling stage_2() again: wrong stage.
   EXPECT_THROW(ls_sec.stage_2(stage_1), ErrWrongStage);
@@ -45,7 +45,7 @@ TEST(LsSec, stage_3) {
   const std::pair<uint64_t, uint64_t> stage_2 = LsSec(1).stage_2(stage_1);
   const uint64_t stage_3 =
       ls_sec.stage_3(stage_2.first, stage_1, stage_2.second);
-  EXPECT_EQ(stage_3, 10773747033690629381LLU);
+  EXPECT_EQ(stage_3, 1123151823067396199LLU);
 
   // Calling stage_3() again: wrong stage.
   EXPECT_THROW(ls_sec.stage_3(stage_2.first, stage_1, stage_2.second),

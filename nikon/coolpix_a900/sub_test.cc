@@ -7,21 +7,21 @@ namespace {
 
 TEST(Sub, entangle) {
   EXPECT_EQ(entangle({}), 578437695752307201ULL);
-  EXPECT_EQ(entangle({1}), 12502495346761032393ULL);
-  EXPECT_EQ(entangle({1, 2, 3}), 6787725047722962626ULL);
-  EXPECT_EQ(entangle({1, 2, 3, 4}), 16450132560130177968ULL);
+  EXPECT_EQ(entangle({1}), 1669531122762555401LLU);
+  EXPECT_EQ(entangle({1, 2, 3}), 15820024228735435700LLU);
+  EXPECT_EQ(entangle({1, 2, 3, 4}), 5425026146954082698LLU);
 }
 
 TEST(Sub, sub_1480) {
   {
     const auto pair = sub_1480(0, 0);
-    EXPECT_EQ(pair.first, 321767095);
-    EXPECT_EQ(pair.second, 4107634734);
+    EXPECT_EQ(pair.first, 1725163392);
+    EXPECT_EQ(pair.second, 1863468925);
   }
   {
     const auto pair = sub_1480(1234, 5678);
-    EXPECT_EQ(pair.first, 1550836812);
-    EXPECT_EQ(pair.second, 595538120);
+    EXPECT_EQ(pair.first, 2209797175);
+    EXPECT_EQ(pair.second, 542139782);
   }
 }
 

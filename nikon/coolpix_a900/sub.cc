@@ -26,8 +26,8 @@ void _sub_1A40(uint8_t *dst, const uint32_t src) {
 void entangle_2(uint32_t *a, uint32_t *b) {
   uint32_t a_1 = *a;
   uint32_t b_1 = *b;
-  for (size_t i = 0; i <= 16; i++) {
-    uint32_t prev = DATA_2A00[i] ^ a_1;
+  for (size_t i = 0; i < 16; i++) {
+    uint32_t prev = ls_sec::R16[i] ^ a_1;
     size_t o_0 = 0x012 + BYTE3(prev);
     size_t o_1 = 0x112 + BYTE2(prev);
     size_t o_2 = 0x212 + BYTE1(prev);
@@ -36,8 +36,8 @@ void entangle_2(uint32_t *a, uint32_t *b) {
                  (DATA_2A00[o_2] ^ (DATA_2A00[o_1] + DATA_2A00[o_0])));
     b_1 = prev;
   }
-  *b = DATA_2A00[16] ^ a_1;
-  *a = DATA_2A00[17] ^ b_1;
+  *b = 0x096EA497E ^ a_1;
+  *a = 0x07C3F81CA ^ b_1;
 }
 }
 
