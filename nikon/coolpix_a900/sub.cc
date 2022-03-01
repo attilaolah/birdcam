@@ -1,12 +1,9 @@
 #include "sub.h"
 
 #include <cstdlib>
-#include <cstring>
 #include <limits>
 
 #include "sub_data.h"
-
-#include "code/defs.h"
 
 namespace ls_sec {
 namespace {

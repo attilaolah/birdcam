@@ -30,7 +30,7 @@ private:
     STAGE_5,
   };
   Stage stage_;
-  int index_;
+  uint8_t index_;
 };
 
 enum class Status {
