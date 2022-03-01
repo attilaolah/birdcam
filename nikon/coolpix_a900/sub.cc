@@ -31,12 +31,11 @@ void entangle_2(uint32_t *a, uint32_t *b) {
   uint32_t b_1 = *b;
   for (size_t i = 0; i < 16; i++) {
     uint32_t prev = R16[i] ^ a_1;
-    size_t o_0 = 0x000 + BYTE3(prev);
-    size_t o_1 = 0x100 + BYTE2(prev);
-    size_t o_2 = 0x200 + BYTE1(prev);
-    size_t o_3 = 0x300 + (uint8_t)prev;
-    a_1 = b_1 ^ (DATA_2A00[o_3] +
-                 (DATA_2A00[o_2] ^ (DATA_2A00[o_1] + DATA_2A00[o_0])));
+    size_t o_0 = BYTE3(prev);
+    size_t o_1 = BYTE2(prev);
+    size_t o_2 = BYTE1(prev);
+    size_t o_3 = (uint8_t)prev;
+    a_1 = b_1 ^ (FIELD_3[o_3] + (FIELD_2[o_2] ^ (FIELD_1[o_1] + FIELD_0[o_0])));
     b_1 = prev;
   }
   *b = 0x096EA497E ^ a_1;

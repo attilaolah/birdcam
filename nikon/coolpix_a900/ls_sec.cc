@@ -42,7 +42,7 @@ uint64_t LsSec::stage_3(uint64_t nonce, uint64_t stage_1, uint64_t device_id) {
     throw ErrWrongStage();
   }
 
-  for (index_ = 0; index_ < DATA_4AC0.size(); index_++) {
+  for (index_ = 0; index_ < SEED_8.size(); index_++) {
     if (hash_3(nonce, stage_1) == device_id) {
       break;
     }
@@ -67,7 +67,7 @@ void LsSec::stage_4(uint64_t nonce, uint64_t stage_1, uint64_t stage_3) {
 }
 
 const uint64_t LsSec::hash_3(const uint64_t a, const uint64_t b) const {
-  return entangle({DATA_4AC0[index_], a, b});
+  return entangle({SEED_8[index_], a, b});
 }
 
 const char *ErrAuth::what() const noexcept {
