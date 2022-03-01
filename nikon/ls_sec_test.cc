@@ -20,7 +20,6 @@ TEST(LsSec, stage_2) {
   LsSec ls_sec(2);
 
   const uint64_t stage_1 = ls_sec.stage_1();
-  EXPECT_EQ(stage_1, 6465365841803442559LLU);
 
   const std::pair<uint64_t, uint64_t> stage_2 = LsSec(1).stage_2(stage_1);
   EXPECT_EQ(stage_2.first, 7749363893351949254LLU);
