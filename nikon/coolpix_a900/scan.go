@@ -200,6 +200,16 @@ func main() {
 		}
 	}
 
+	ls := ls_sec.New(rand.Uint32())
+	defer ls.Free()
+
+	nonce, err := ls.Stage1()
+	if err != nil {
+		fmt.Println("stage_1 error:", err)
+		return
+	}
+	devID := rand.Uint64()
+
 	fmt.Printf("Indication-Subscribing @ %s: ", Authentication.UUID)
 	if c := cam.Profile().FindCharacteristic(Authentication); c == nil {
 		fmt.Println("characteristic not found!")
@@ -208,7 +218,45 @@ func main() {
 			fmt.Println("characteristic does not support indication!")
 		}
 		if err = cam.Subscribe(c, true, func(req []byte) {
-			fmt.Println("IND: %s = %#v", Authentication.UUID, req)
+			fmt.Printf("IND: %s = %#v\n", Authentication.UUID, req)
+			if len(req) != 17 {
+				fmt.Println("request length != 17:", len(req))
+				return
+			}
+			if req[0] != 2 {
+				fmt.Println("expected stage 2, got:", req[0])
+				return
+			}
+			camNonce := binary.LittleEndian.Uint64(req[1:])
+			camDevID := binary.LittleEndian.Uint64(req[9:])
+			fmt.Printf("received nonce = %d, dev_id = %d\n", camNonce, camDevID)
+
+			stage_3, err := ls.Stage3(camNonce, nonce, camDevID)
+			if err != nil {
+				fmt.Println("stage_3 error:", err)
+			}
+			fmt.Println("stage_3:", stage_3)
+
+			buf := make([]byte, 17)
+			buf[0] = 0x03 // stage_3
+			binary.LittleEndian.PutUint64(buf[1:], nonce)
+			binary.LittleEndian.PutUint64(buf[9:], stage_3)
+			fmt.Printf("sending nonce = %d, stage_3 = %d\n", nonce, stage_3)
+
+			go func() {
+				if c := cam.Profile().FindCharacteristic(Authentication); c == nil {
+					fmt.Println("characteristic not found!")
+				} else {
+					if c.Property|ble.CharWrite == 0 {
+						fmt.Println("characteristic does not support writing!")
+					}
+					if err := cam.WriteCharacteristic(c, buf, false); err != nil {
+						fmt.Println("error:", err)
+					} else {
+						fmt.Println("ok!")
+					}
+				}
+			}()
 		}); err != nil {
 			fmt.Println("error:", err)
 		} else {
@@ -218,19 +266,11 @@ func main() {
 
 	fmt.Printf("Authenticating: ")
 
-	ls := ls_sec.New(rand.Uint32())
-	defer ls.Free()
-
-	nonce, err := ls.Stage1()
-	if err != nil {
-		fmt.Println("error:", err)
-		return
-	}
-	devID := rand.Uint64()
 	buf := make([]byte, 17)
 	buf[0] = 0x01 // stage_1
 	binary.LittleEndian.PutUint64(buf[1:], nonce)
 	binary.LittleEndian.PutUint64(buf[9:], devID)
+	fmt.Printf("sending nonce = %d, dev_id = %d\n", nonce, devID)
 
 	if c := cam.Profile().FindCharacteristic(Authentication); c == nil {
 		fmt.Println("characteristic not found!")
