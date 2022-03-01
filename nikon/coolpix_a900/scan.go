@@ -2,8 +2,10 @@ package main
 
 import (
 	"context"
+	"encoding/binary"
 	"errors"
 	"fmt"
+	"math/rand"
 	"os"
 	"os/signal"
 	"strings"
@@ -13,6 +15,8 @@ import (
 	"github.com/go-ble/ble"
 	"github.com/go-ble/ble/linux"
 	"tinygo.org/x/bluetooth"
+
+	ls_sec "github.com/attilaolah/birdcam/nikon"
 )
 
 // LocalName advertised by this camera model.
@@ -213,7 +217,21 @@ func main() {
 	}
 
 	fmt.Printf("Authenticating: ")
-	buf := []byte{0x01, 0x48, 0x0a, 0x18, 0xd1, 0x27, 0xef, 0xee, 0x42, 0x84, 0x57, 0xd5, 0x70, 0x4c, 0x2b, 0xe5, 0x53}
+
+	ls := ls_sec.New(rand.Uint32())
+	defer ls.Free()
+
+	nonce, err := ls.Stage1()
+	if err != nil {
+		fmt.Println("error:", err)
+		return
+	}
+	devID := rand.Uint64()
+	buf := make([]byte, 17)
+	buf[0] = 0x01 // stage_1
+	binary.LittleEndian.PutUint64(buf[1:], nonce)
+	binary.LittleEndian.PutUint64(buf[9:], devID)
+
 	if c := cam.Profile().FindCharacteristic(Authentication); c == nil {
 		fmt.Println("characteristic not found!")
 	} else {

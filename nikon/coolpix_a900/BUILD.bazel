@@ -1,0 +1,19 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_binary(
+    name = "scan",
+    embed = [":coolpix_a900_lib"],
+    visibility = ["//visibility:public"],
+)
+
+go_library(
+    name = "coolpix_a900_lib",
+    srcs = ["scan.go"],
+    importpath = "github.com/attilaolah/birdcam/nikon/coolpix_a900",
+    deps = [
+        "//nikon:ls_sec_go",
+        "@com_github_go_ble_ble//:go_default_library",
+        "@com_github_go_ble_ble//linux:go_default_library",
+        "@org_tinygo_x_bluetooth//:go_default_library",
+    ],
+)

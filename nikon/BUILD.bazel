@@ -22,6 +22,7 @@ go_library(
     cdeps = [":ls_sec_cgo"],
     cgo = True,
     importpath = "github.com/attilaolah/birdcam/nikon",
+    visibility = [":__subpackages__"],
 )
 
 go_test(
