@@ -1,5 +1,4 @@
-#ifndef LS_SEC_H
-#define LS_SEC_H
+#pragma once
 
 #include <array>
 #include <cstdint>
@@ -61,5 +60,3 @@ class ErrWrongStage : public Error, public std::exception {
 };
 
 }  // namespace ls_sec
-
-#endif  // LS_SEC_H

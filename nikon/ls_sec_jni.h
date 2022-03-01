@@ -1,5 +1,4 @@
-#ifndef LS_SEC_JNI_H
-#define LS_SEC_JNI_H
+#pragma once
 
 #include <jni.h>
 
@@ -65,5 +64,3 @@ Java_com_nikon_LsSec_jniLsSec_SetContextData(JNIEnv *, jobject, jbyteArray,
                                              jlongArray, jlongArray, jint,
                                              jboolean);
 }
-
-#endif  // LS_SEC_JNI_H
