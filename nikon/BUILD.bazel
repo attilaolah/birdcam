@@ -4,7 +4,7 @@ cc_library(
     name = "ls_sec",
     srcs = ["ls_sec.cc"],
     hdrs = ["ls_sec.h"],
-    deps = [":sub"],
+    deps = [":ls_sec_entangle"],
 )
 
 cc_test(
@@ -41,23 +41,23 @@ cc_library(
 )
 
 cc_library(
-    name = "sub",
-    srcs = ["sub.cc"],
-    hdrs = ["sub.h"],
-    deps = [":sub_data"],
+    name = "ls_sec_entangle",
+    srcs = ["ls_sec_entangle.cc"],
+    hdrs = ["ls_sec_entangle.h"],
+    deps = [":ls_sec_data"],
 )
 
 cc_test(
-    name = "sub_test",
-    srcs = ["sub_test.cc"],
+    name = "ls_sec_entangle_test",
+    srcs = ["ls_sec_entangle_test.cc"],
     deps = [
-        ":sub",
+        ":ls_sec_entangle",
         "@com_google_googletest//:gtest_main",
     ],
 )
 
 cc_library(
-    name = "sub_data",
-    srcs = ["sub_data.cc"],
-    hdrs = ["sub_data.h"],
+    name = "ls_sec_data",
+    srcs = ["ls_sec_data.cc"],
+    hdrs = ["ls_sec_data.h"],
 )
