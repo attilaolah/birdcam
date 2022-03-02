@@ -1,1 +1,5 @@
-build --cxxopt=-std=c++20 --spawn_strategy=standalone
+build --repo_env=CC=clang
+build --cxxopt=-std=c++20 --host_cxxopt=-std=c++20
+
+# Required when linking against some shared libs:
+# build --spawn_strategy=standalone
