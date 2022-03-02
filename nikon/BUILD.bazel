@@ -3,68 +3,14 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 go_library(
     name = "nikon",
     srcs = ["ls_sec.go"],
-    cdeps = [":ls_sec_cgo"],
+    cdeps = ["//nikon/ls_sec:cgo"],
     cgo = True,
     importpath = "github.com/attilaolah/birdcam/nikon",
-    visibility = [":__subpackages__"],
+    visibility = ["//visibility:public"],
 )
 
 go_test(
     name = "nikon_test",
     srcs = ["ls_sec_test.go"],
     embed = [":nikon"],
-)
-
-cc_library(
-    name = "ls_sec",
-    srcs = ["ls_sec.cc"],
-    hdrs = ["ls_sec.h"],
-    deps = [":ls_sec_entangle"],
-)
-
-cc_test(
-    name = "ls_sec_test",
-    srcs = ["ls_sec_test.cc"],
-    deps = [
-        ":ls_sec",
-        "@com_google_googletest//:gtest_main",
-    ],
-)
-
-cc_library(
-    name = "ls_sec_cgo",
-    srcs = ["ls_sec_cgo.cc"],
-    hdrs = ["ls_sec_cgo.h"],
-    deps = [":ls_sec"],
-)
-
-cc_library(
-    name = "ls_sec_jni",
-    hdrs = ["ls_sec_jni.h"],
-    deps = [
-        "//third_party:jni",
-        "//third_party/snapbridge:ls_sec_jni",
-    ],
-)
-
-cc_library(
-    name = "ls_sec_entangle",
-    srcs = ["ls_sec_entangle.cc"],
-    hdrs = ["ls_sec_entangle.h"],
-    deps = [":ls_sec_data"],
-)
-
-cc_test(
-    name = "ls_sec_entangle_test",
-    srcs = ["ls_sec_entangle_test.cc"],
-    deps = [
-        ":ls_sec_entangle",
-        "@com_google_googletest//:gtest_main",
-    ],
-)
-
-cc_library(
-    name = "ls_sec_data",
-    srcs = ["ls_sec_data.cc"],
-    hdrs = ["ls_sec_data.h"],
 )

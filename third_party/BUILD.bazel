@@ -1,4 +1,4 @@
-package(default_visibility = ["//nikon:__pkg__"])
+package(default_visibility = ["//nikon/ls_sec:__pkg__"])
 
 cc_library(
     name = "jni",

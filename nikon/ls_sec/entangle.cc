@@ -1,9 +1,9 @@
-#include "ls_sec_entangle.h"
+#include "entangle.h"
 
 #include <cstdlib>
 #include <limits>
 
-#include "ls_sec_data.h"
+#include "data.h"
 
 namespace ls_sec {
 namespace {

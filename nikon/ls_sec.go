@@ -1,6 +1,6 @@
-package nikon
+package ls_sec
 
-// #include "nikon/ls_sec_cgo.h"
+// #include "nikon/ls_sec/cgo.h"
 import "C"
 
 const OK = 0

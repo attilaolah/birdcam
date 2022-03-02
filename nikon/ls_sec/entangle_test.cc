@@ -1,4 +1,4 @@
-#include "ls_sec_entangle.h"
+#include "entangle.h"
 
 #include "gtest/gtest.h"
 

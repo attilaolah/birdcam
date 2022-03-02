@@ -1,4 +1,4 @@
-#include "ls_sec_cgo.h"
+#include "cgo.h"
 
 #include "ls_sec.h"
 

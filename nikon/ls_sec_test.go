@@ -1,4 +1,4 @@
-package nikon
+package ls_sec
 
 import (
 	"errors"

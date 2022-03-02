@@ -3,8 +3,8 @@
 #include <cstdlib>
 #include <cstring>
 
-#include "ls_sec_data.h"
-#include "ls_sec_entangle.h"
+#include "data.h"
+#include "entangle.h"
 
 namespace ls_sec {
 namespace {

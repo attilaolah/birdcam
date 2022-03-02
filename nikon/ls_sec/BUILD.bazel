@@ -1,0 +1,54 @@
+cc_library(
+    name = "ls_sec",
+    srcs = ["ls_sec.cc"],
+    hdrs = ["ls_sec.h"],
+    deps = [":entangle"],
+)
+
+cc_test(
+    name = "ls_sec_test",
+    srcs = ["ls_sec_test.cc"],
+    deps = [
+        ":ls_sec",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_library(
+    name = "entangle",
+    srcs = ["entangle.cc"],
+    hdrs = ["entangle.h"],
+    deps = [":data"],
+)
+
+cc_test(
+    name = "entangle_test",
+    srcs = ["entangle_test.cc"],
+    deps = [
+        ":entangle",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_library(
+    name = "data",
+    srcs = ["data.cc"],
+    hdrs = ["data.h"],
+)
+
+cc_library(
+    name = "cgo",
+    srcs = ["cgo.cc"],
+    hdrs = ["cgo.h"],
+    visibility = ["//nikon:__pkg__"],
+    deps = [":ls_sec"],
+)
+
+cc_library(
+    name = "ls_sec_jni",
+    hdrs = ["ls_sec_jni.h"],
+    deps = [
+        "//third_party:jni",
+        "//third_party/snapbridge:ls_sec_jni",
+    ],
+)

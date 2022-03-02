@@ -1,4 +1,4 @@
-#include "ls_sec_data.h"
+#include "data.h"
 
 namespace ls_sec {
 std::array<uint32_t, 16> R16 = {{
