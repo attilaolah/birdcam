@@ -1,19 +1,17 @@
-package nikon_test
+package nikon
 
 import (
 	"errors"
 	"testing"
-
-	ls_sec "github.com/attilaolah/birdcam/nikon"
 )
 
 func TestInit(t *testing.T) {
-	ls := ls_sec.New(42)
+	ls := New(42)
 	defer ls.Free()
 }
 
 func TestStage1(t *testing.T) {
-	ls := ls_sec.New(1)
+	ls := New(1)
 	defer ls.Free()
 
 	if got, err := ls.Stage1(); err != nil {
@@ -23,13 +21,13 @@ func TestStage1(t *testing.T) {
 	}
 
 	// Calling Stage1() again: wrong stage.
-	if _, err := ls.Stage1(); !errors.Is(err, ls_sec.ErrWrongStage) {
-		t.Errorf("Stage1(): want: %v, got: %v", ls_sec.ErrWrongStage, err)
+	if _, err := ls.Stage1(); !errors.Is(err, ErrWrongStage) {
+		t.Errorf("Stage1(): want: %v, got: %v", ErrWrongStage, err)
 	}
 }
 
 func TestStage2(t *testing.T) {
-	ls_a := ls_sec.New(2)
+	ls_a := New(2)
 	defer ls_a.Free()
 
 	stage_1, err := ls_a.Stage1()
@@ -40,7 +38,7 @@ func TestStage2(t *testing.T) {
 		t.Errorf("Stage1(): want: %d, got: %d", want, stage_1)
 	}
 
-	ls_b := ls_sec.New(1)
+	ls_b := New(1)
 	defer ls_b.Free()
 
 	if nonce, device_id, err := ls_b.Stage2(stage_1); err != nil {
@@ -52,18 +50,18 @@ func TestStage2(t *testing.T) {
 	}
 
 	// Calling Stage2() again: wrong stage.
-	if _, _, err := ls_a.Stage2(stage_1); !errors.Is(err, ls_sec.ErrWrongStage) {
-		t.Errorf("Stage2(): want: %v, got: %v", ls_sec.ErrWrongStage, err)
+	if _, _, err := ls_a.Stage2(stage_1); !errors.Is(err, ErrWrongStage) {
+		t.Errorf("Stage2(): want: %v, got: %v", ErrWrongStage, err)
 	}
 }
 
 func TestStage3(t *testing.T) {
-	ls_a := ls_sec.New(3)
+	ls_a := New(3)
 	defer ls_a.Free()
 
 	// Calling Stage3() before Stage1(): wrong stage.
-	if _, err := ls_a.Stage3(0, 0, 0); !errors.Is(err, ls_sec.ErrWrongStage) {
-		t.Errorf("Stage3(): want: %v, got: %v", ls_sec.ErrWrongStage, err)
+	if _, err := ls_a.Stage3(0, 0, 0); !errors.Is(err, ErrWrongStage) {
+		t.Errorf("Stage3(): want: %v, got: %v", ErrWrongStage, err)
 	}
 
 	stage_1, err := ls_a.Stage1()
@@ -72,14 +70,14 @@ func TestStage3(t *testing.T) {
 	}
 
 	// Calling Stage3() with wrong data: auth error.
-	if _, err := ls_a.Stage3(0, 0, 0); !errors.Is(err, ls_sec.ErrAuth) {
-		t.Errorf("Stage3(): want: %v, got: %v", ls_sec.ErrAuth, err)
+	if _, err := ls_a.Stage3(0, 0, 0); !errors.Is(err, ErrAuth) {
+		t.Errorf("Stage3(): want: %v, got: %v", ErrAuth, err)
 	}
-	if _, err := ls_a.Stage3(1, stage_1, 3); !errors.Is(err, ls_sec.ErrAuth) {
-		t.Errorf("Stage3(): want: %v, got: %v", ls_sec.ErrAuth, err)
+	if _, err := ls_a.Stage3(1, stage_1, 3); !errors.Is(err, ErrAuth) {
+		t.Errorf("Stage3(): want: %v, got: %v", ErrAuth, err)
 	}
 
-	ls_b := ls_sec.New(1)
+	ls_b := New(1)
 	defer ls_b.Free()
 
 	nonce, device_id, err := ls_b.Stage2(stage_1)
@@ -94,20 +92,20 @@ func TestStage3(t *testing.T) {
 	}
 
 	// Calling Stage3() again: wrong stage.
-	if _, err := ls_a.Stage3(nonce, stage_1, device_id); !errors.Is(err, ls_sec.ErrWrongStage) {
-		t.Errorf("Stage3(): want: %v, got: %v", ls_sec.ErrWrongStage, err)
+	if _, err := ls_a.Stage3(nonce, stage_1, device_id); !errors.Is(err, ErrWrongStage) {
+		t.Errorf("Stage3(): want: %v, got: %v", ErrWrongStage, err)
 	}
 }
 
 func TestStage4(t *testing.T) {
-	ls_a := ls_sec.New(4)
+	ls_a := New(4)
 	defer ls_a.Free()
-	ls_b := ls_sec.New(4)
+	ls_b := New(4)
 	defer ls_b.Free()
 
 	// Calling Stage4() before stage_2(): wrong stage.
-	if err := ls_b.Stage4(0, 0, 0); !errors.Is(err, ls_sec.ErrWrongStage) {
-		t.Errorf("Stage4(): want: %v, got: %v", ls_sec.ErrWrongStage, err)
+	if err := ls_b.Stage4(0, 0, 0); !errors.Is(err, ErrWrongStage) {
+		t.Errorf("Stage4(): want: %v, got: %v", ErrWrongStage, err)
 	}
 
 	stage_1, err := ls_a.Stage1()
@@ -124,8 +122,8 @@ func TestStage4(t *testing.T) {
 	}
 
 	// Calling Stage4() with wrong data: auth error.
-	if err := ls_b.Stage4(0, 0, 0); !errors.Is(err, ls_sec.ErrAuth) {
-		t.Errorf("Stage3(): want: %v, got: %v", ls_sec.ErrAuth, err)
+	if err := ls_b.Stage4(0, 0, 0); !errors.Is(err, ErrAuth) {
+		t.Errorf("Stage3(): want: %v, got: %v", ErrAuth, err)
 	}
 
 	// No exception.
@@ -134,7 +132,7 @@ func TestStage4(t *testing.T) {
 	}
 
 	// Calling Stage3() again: wrong stage.
-	if err := ls_b.Stage4(nonce, stage_1, stage_3); !errors.Is(err, ls_sec.ErrWrongStage) {
-		t.Errorf("Stage4(): want: %v, got: %v", ls_sec.ErrWrongStage, err)
+	if err := ls_b.Stage4(nonce, stage_1, stage_3); !errors.Is(err, ErrWrongStage) {
+		t.Errorf("Stage4(): want: %v, got: %v", ErrWrongStage, err)
 	}
 }

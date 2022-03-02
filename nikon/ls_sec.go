@@ -1,4 +1,4 @@
-package ls_sec
+package nikon
 
 // #include "nikon/ls_sec_cgo.h"
 import "C"

@@ -9,7 +9,7 @@ go_library(
     importpath = "github.com/attilaolah/birdcam/nikon/coolpix_a900",
     visibility = ["//cmd:__subpackages__"],
     deps = [
-        "//nikon:ls_sec_go",
+        "//nikon",
         "@com_github_go_ble_ble//:ble",
         "@com_github_go_ble_ble//linux",
         "@org_tinygo_x_bluetooth//:bluetooth",

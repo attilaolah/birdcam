@@ -1,5 +1,20 @@
 load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 
+go_library(
+    name = "nikon",
+    srcs = ["ls_sec.go"],
+    cdeps = [":ls_sec_cgo"],
+    cgo = True,
+    importpath = "github.com/attilaolah/birdcam/nikon",
+    visibility = [":__subpackages__"],
+)
+
+go_test(
+    name = "nikon_test",
+    srcs = ["ls_sec_test.go"],
+    embed = [":nikon"],
+)
+
 cc_library(
     name = "ls_sec",
     srcs = ["ls_sec.cc"],
@@ -14,21 +29,6 @@ cc_test(
         ":ls_sec",
         "@com_google_googletest//:gtest_main",
     ],
-)
-
-go_library(
-    name = "ls_sec_go",
-    srcs = ["ls_sec.go"],
-    cdeps = [":ls_sec_cgo"],
-    cgo = True,
-    importpath = "github.com/attilaolah/birdcam/nikon",
-    visibility = [":__subpackages__"],
-)
-
-go_test(
-    name = "ls_sec_go_test",
-    srcs = ["ls_sec_test.go"],
-    deps = [":ls_sec_go"],
 )
 
 cc_library(
