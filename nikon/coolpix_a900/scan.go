@@ -1,163 +1,22 @@
-package main
+package coolpix
 
 import (
 	"context"
 	"encoding/binary"
-	"errors"
 	"fmt"
 	"math/rand"
 	"os"
 	"os/signal"
-	"strings"
 	"syscall"
 	"time"
 
 	"github.com/go-ble/ble"
 	"github.com/go-ble/ble/linux"
-	"tinygo.org/x/bluetooth"
 
 	ls_sec "github.com/attilaolah/birdcam/nikon"
 )
 
-// LocalName advertised by this camera model.
-const CamName = "A900"
-
-// UUID generates Nikon vendor-specific UUIDs.
-func UUID(b uint16) ble.UUID {
-	return ble.MustParse(fmt.Sprintf("0000%04x-3dd4-4255-8d62-6dc7b9bd5561", b))
-}
-
-var (
-	// COOLPIX A900 vendor-specific stuff.
-	// These are mostly reverse-engineered, so take them with a grain of salt.
-
-	// Services advertised by this camera model.
-
-	// >>> Handle, ValueHandle:
-	GAP        = ble.NewService(ble.GAPUUID)        // 0x01 0x07
-	GATT       = ble.NewService(ble.GATTUUID)       // 0x0c 0x0f
-	NIKON      = ble.NewService(UUID(0xDE00))       // 0x40 0x5a // https://hal.inria.fr/hal-02394629/document @ page 9
-	DeviceInfo = ble.NewService(ble.DeviceInfoUUID) // 0x6f 0x77
-
-	// GAPP >>> Handle, ValueHandle, EndHandle (IFF != ValueHandle)
-	DeviceName     = ble.NewCharacteristic(ble.DeviceNameUUID)     // 0x02 0x03
-	Appearance     = ble.NewCharacteristic(ble.AppearanceUUID)     // 0x04 0x05
-	PeferredParams = ble.NewCharacteristic(ble.PeferredParamsUUID) // 0x06 0x07
-
-	// GATT >>> Handle, ValueHandle, EndHandle (IFF != ValueHandle)
-	ServiceChanged = ble.NewCharacteristic(ble.ServiceChangedUUID) // 0x0d 0x0e 0x0f
-
-	// DeviceInfo >>> Handle, ValueHandle, EndHandle (IFF != ValueHandle)
-	ManufacturerNameString = ble.NewCharacteristic(ble.UUID16(bluetooth.CharacteristicUUIDManufacturerNameString.Get16Bit())) // 0x70 0x71
-	FirmwareRevisionString = ble.NewCharacteristic(ble.UUID16(bluetooth.CharacteristicUUIDFirmwareRevisionString.Get16Bit())) // 0x72 0x73
-	SoftwareRevisionString = ble.NewCharacteristic(ble.UUID16(bluetooth.CharacteristicUUIDSoftwareRevisionString.Get16Bit())) // 0x74 0x75
-	ModelNumberString      = ble.NewCharacteristic(ble.UUID16(bluetooth.CharacteristicUUIDModelNumberString.Get16Bit()))      // 0x76 0x77
-
-	// Characteristics advertised by this camera model (mostly reverse-engineered).
-	// Disassembled from SnapBridge APK / com/nikon/snapbridge/cmru/bleclient/services/lss/BleLssService.
-	// Some are also listed here: https://dslrdashboard.info/phpBB3/viewtopic.php?p=7796#p7796
-
-	// NIKON >>> Handle, ValueHandle, EndHandle (IFF != ValueHandle)
-	Authentication          = ble.NewCharacteristic(UUID(0x2000)) // 0x41 0x42 0x43
-	PowerControl            = ble.NewCharacteristic(UUID(0x2001)) // 0x44 0x45
-	ClientDeviceName        = ble.NewCharacteristic(UUID(0x2002)) // 0x46 0x47
-	ServerDeviceName        = ble.NewCharacteristic(UUID(0x2003)) // 0x48 0x49
-	ConnectionConfiguration = ble.NewCharacteristic(UUID(0x2004)) // 0x4a 0x4b
-	ConnectionEstablishment = ble.NewCharacteristic(UUID(0x2005)) // 0x4c 0x4d
-	CurrentTime             = ble.NewCharacteristic(UUID(0x2006)) // 0x4e 0x4f
-	LocationInformation     = ble.NewCharacteristic(UUID(0x2007)) // 0x50 0x51
-	LSSControlPoint         = ble.NewCharacteristic(UUID(0x2008)) // 0x52 0x53 0x54
-	LSSFeature              = ble.NewCharacteristic(UUID(0x2009)) // 0x55 0x56
-	BatteryLevel            = ble.NewCharacteristic(UUID(0x2A19)) // 0x57 0x58
-	LSSSerialNumberString   = ble.NewCharacteristic(UUID(0x200b)) // 0x59 0x5a
-
-	// Advertised descriptors:
-	// ClientCharacteristicConfig [0x2902] at handles: 0x0f, 0x43, 0x54.
-)
-
-type DeviceInformation struct {
-	ManufacturerName string
-	ModelNumber      string
-	SerialNumber     string
-	SoftwareRevision string
-	FirmwareRevision string
-}
-
-type A900 struct {
-	ble.Client
-
-	TxPower int
-}
-
-func Connect(ctx context.Context) (cam *A900, err error) {
-	var txp int
-	cli, err := ble.Connect(ctx, func(a ble.Advertisement) bool {
-		if a.LocalName() != CamName || !a.Connectable() {
-			return false
-		}
-		for _, s := range a.Services() {
-			if NIKON.UUID.Equal(s) {
-				txp = a.TxPowerLevel()
-				return true
-			}
-		}
-		return false
-	})
-	if err != nil {
-		return nil, fmt.Errorf("failed to connect to camera: %w", err)
-	}
-
-	return &A900{
-		Client:  cli,
-		TxPower: txp,
-	}, nil
-}
-
-func (cam *A900) DeviceInformation() (*DeviceInformation, error) {
-	var err error
-	info := DeviceInformation{}
-	if info.ManufacturerName, err = cam.ReadString(ManufacturerNameString); err != nil {
-		return nil, fmt.Errorf("failed to read manufacturer name: %w", err)
-	}
-	if info.ModelNumber, err = cam.ReadString(ModelNumberString); err != nil {
-		return nil, fmt.Errorf("failed to read model number: %w", err)
-	}
-	if info.SoftwareRevision, err = cam.ReadString(SoftwareRevisionString); err != nil {
-		return nil, fmt.Errorf("failed to read software revision: %w", err)
-	}
-	if info.FirmwareRevision, err = cam.ReadString(FirmwareRevisionString); err != nil {
-		return nil, fmt.Errorf("failed to read firmware revision: %w", err)
-	}
-	if info.SerialNumber, err = cam.ReadString(LSSSerialNumberString); err != nil {
-		return nil, fmt.Errorf("failed to read serial number: %w", err)
-	}
-
-	return &info, nil
-}
-
-func (cam *A900) ReadString(c *ble.Characteristic) (string, error) {
-	p := cam.Profile()
-	if p == nil {
-		var err error
-		if p, err = cam.DiscoverProfile(false); err != nil {
-			return "", fmt.Errorf("failed to discover profile: %w", err)
-		}
-	}
-
-	if c := p.FindCharacteristic(c); c == nil {
-		return "", errors.New("characteristic not found")
-	} else if c.Property|ble.CharRead == 0 {
-		return "", errors.New("characteristic cannot be read")
-	} else {
-		if buf, err := cam.ReadCharacteristic(c); err != nil {
-			return "", fmt.Errorf("failed to read characteristic: %w", err)
-		} else {
-			return strings.TrimSpace(strings.Trim(string(buf), "\x00")), nil
-		}
-	}
-}
-
-func main() {
+func Main() {
 	ctx := context.Background()
 
 	dev, err := linux.NewDevice()

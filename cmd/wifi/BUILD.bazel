@@ -1,0 +1,14 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_binary(
+    name = "wifi",
+    embed = [":wifi_lib"],
+    visibility = ["//visibility:public"],
+)
+
+go_library(
+    name = "wifi_lib",
+    srcs = ["wifi.go"],
+    importpath = "github.com/attilaolah/birdcam/cmd/wifi",
+    deps = ["//nikon/coolpix_a900:coolpix_a900_lib"],
+)
