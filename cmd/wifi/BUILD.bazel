@@ -11,5 +11,5 @@ go_library(
     srcs = ["wifi.go"],
     importpath = "github.com/attilaolah/birdcam/cmd/wifi",
     visibility = ["//visibility:private"],
-    deps = ["//nikon/coolpix_a900:coolpix_a900_lib"],
+    deps = ["//nikon/coolpix"],
 )
