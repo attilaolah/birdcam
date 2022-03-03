@@ -2,10 +2,12 @@ package coolpix
 
 import (
 	"context"
+	"encoding/binary"
 	"errors"
 	"fmt"
 	"math/rand"
 	"strings"
+	"time"
 
 	"github.com/go-ble/ble"
 	"tinygo.org/x/bluetooth"
@@ -179,7 +181,8 @@ func (cam *A900) Authenticate() error {
 		return fmt.Errorf("auth error: expected stage %d, got: %d", ls_sec.Stage4, stage)
 	}
 
-	fmt.Println("auth: stage_4 =", stage4)
+	// TODO: Store Stage 4 value!
+	_ = stage4
 
 	return nil
 }
@@ -224,6 +227,14 @@ func (cam *A900) subscribe(c *ble.Characteristic, indicate bool) (<-chan []byte,
 	return ch, nil
 }
 
+func (cam *A900) SetWiFi(on bool) error {
+	buf := []byte{0}
+	if on {
+		buf[0] = 1
+	}
+	return cam.WriteBytes(ConnectionEstablishment, buf)
+}
+
 func (cam *A900) ManufacturerName() (string, error) {
 	return cam.ReadString(ManufacturerNameString)
 }
@@ -244,6 +255,10 @@ func (cam *A900) LSSSerialNumber() (string, error) {
 	return cam.ReadString(LSSSerialNumberString)
 }
 
+func (cam *A900) ServerDeviceName() (string, error) {
+	return cam.ReadString(ServerDeviceName)
+}
+
 // Return the battery level, as a % between 0 and 100.
 func (cam *A900) BatteryLevel() (uint8, error) {
 	buf, err := cam.ReadBytes(BatteryLevel)
@@ -255,6 +270,28 @@ func (cam *A900) BatteryLevel() (uint8, error) {
 	}
 
 	return buf[0], nil
+}
+
+// WriteCurrentTime writes the current time to the camera.
+func (cam *A900) WriteCurrentTime() error {
+	t := time.Now()
+	u := t.UTC()
+	_, offset := t.Zone()
+
+	// YYMDHMS?ZZ
+	buf := make([]byte, 10)
+	binary.LittleEndian.PutUint16(buf, uint16(u.Year()))
+	buf[2] = uint8(u.Month())
+	buf[3] = uint8(u.Day())
+	buf[4] = uint8(u.Hour())
+	buf[5] = uint8(u.Minute())
+	buf[6] = uint8(u.Second())
+	// Byte 7 is left at zero value.
+	buf[8] = uint8(time.Duration(offset) * time.Second / time.Hour)
+	// This is a guess: the last byte may indicate a non-integer hour time zone offset.
+	buf[9] = uint8((time.Duration(offset) * time.Second / time.Minute) % (time.Hour / time.Minute))
+
+	return cam.WriteBytes(CurrentTime, buf)
 }
 
 // Read a characteristic as a raw byte slice.
@@ -294,13 +331,20 @@ func (cam *A900) WriteBytes(c *ble.Characteristic, buf []byte) error {
 	return cam.WriteCharacteristic(c, buf, false)
 }
 
-// Read a characteristic as a zero-padded string.
+// ReadString reads a characteristic as a zero-padded string.
 func (cam *A900) ReadString(c *ble.Characteristic) (string, error) {
 	buf, err := cam.ReadBytes(c)
 	if err != nil {
 		return "", err
 	}
 	return strings.Trim(string(buf), "\x00"), nil
+}
+
+// WriteString writes zero-padded string to a characteristic handle.
+func (cam *A900) WriteString(c *ble.Characteristic, s string, pad int) error {
+	buf := make([]byte, pad)
+	copy(buf, s)
+	return cam.WriteBytes(c, buf)
 }
 
 // Discover the camera profile if needed.

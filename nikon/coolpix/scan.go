@@ -2,7 +2,6 @@ package coolpix
 
 import (
 	"context"
-	"encoding/binary"
 	"fmt"
 	"os"
 	"os/signal"
@@ -33,6 +32,14 @@ func Main() {
 	}
 	fmt.Println("OK!")
 
+	fmt.Print("Exchanging MTU: ")
+	if mtu, err := cam.ExchangeMTU(ble.MaxMTU); err != nil {
+		fmt.Println(err)
+		return
+	} else {
+		fmt.Println("OK! TX MTU =", mtu)
+	}
+
 	fmt.Print("Authenticating: ")
 	if err = cam.Authenticate(); err != nil {
 		fmt.Println(err)
@@ -40,68 +47,46 @@ func Main() {
 	}
 	fmt.Println("OK!")
 
+	fmt.Print("Reading BatteryLevel: ")
 	if b, err := cam.BatteryLevel(); err != nil {
 		fmt.Println(err)
 	} else {
-		fmt.Println("battery_level:", b)
+		fmt.Println("OK! BatteryLevel =", b)
 	}
 
-	buf := make([]byte, 32)
-	copy(buf, "Android_Pixel_5_5797")
-	fmt.Println("writing client_device_name")
-	if err = cam.WriteBytes(ClientDeviceName, buf); err != nil {
+	fmt.Print("Writing ClientDeviceName: ")
+	if err = cam.WriteString(ClientDeviceName, "Android_Pixel_5_1234", 32); err != nil {
 		fmt.Println("error:", err)
 	} else {
-		fmt.Println("ok!")
+		fmt.Println("OK!")
 	}
 
-	/*
-		fmt.Println("reading server_device_name")
-		if c := p.FindCharacteristic(ServerDeviceName); c == nil {
-			fmt.Println("characteristic not found!")
-		} else if c.Property|ble.CharRead == 0 {
-			fmt.Println("characteristic does not support reading!")
-		} else {
-			if buf, err := cam.ReadCharacteristic(c); err != nil {
-				fmt.Println("error:", err)
-			} else {
-				fmt.Println("\nok! server_device_name:", strings.TrimSpace(strings.Trim(string(buf), "\x00")))
-			}
-		}
-	*/
-
-	buf = make([]byte, 10)
-	now := time.Now()
-	utc := now.UTC()
-	_, offset := now.Zone()
-	binary.LittleEndian.PutUint16(buf, uint16(utc.Year()))
-	buf[2] = uint8(utc.Month())
-	buf[3] = uint8(utc.Day())
-	buf[4] = uint8(utc.Hour())
-	buf[5] = uint8(utc.Minute())
-	buf[6] = uint8(utc.Second())
-	buf[8] = uint8(time.Duration(offset) * time.Second / time.Hour)
-	buf[9] = uint8((time.Duration(offset) * time.Second / time.Minute) % (time.Hour / time.Minute))
-
-	fmt.Println("writing current_time:", now, "encoded:", buf)
-	if err = cam.WriteBytes(CurrentTime, buf); err != nil {
+	fmt.Print("Reading ServerDeviceName: ")
+	if s, err := cam.ServerDeviceName(); err != nil {
 		fmt.Println("error:", err)
 	} else {
-		fmt.Println("ok!")
+		fmt.Println("OK! ServerDeviceName =", s)
 	}
 
-	fmt.Println("reading connection_configuration")
+	fmt.Print("Writing CurrentTime: ")
+	if err = cam.WriteCurrentTime(); err != nil {
+		fmt.Println("error:", err)
+	} else {
+		fmt.Println("OK!")
+	}
+
+	fmt.Print("Reading ConnectionConfiguration: ")
 	if buf, err := cam.ReadBytes(ConnectionConfiguration); err != nil {
 		fmt.Println("error:", err)
 	} else {
-		fmt.Println("ok! connection_configuration:", buf)
+		fmt.Println("OK! ConnectionConfiguration:", buf)
 	}
 
-	fmt.Println("writing connection_establishment")
-	if err := cam.WriteBytes(ConnectionEstablishment, []byte{1}); err != nil {
+	fmt.Print("Enabling WiFi: ")
+	if err := cam.SetWiFi(true); err != nil {
 		fmt.Println("error:", err)
 	} else {
-		fmt.Println("ok!")
+		fmt.Println("OK!")
 	}
 
 	quit := make(chan os.Signal)
