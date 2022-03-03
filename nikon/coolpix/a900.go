@@ -86,7 +86,7 @@ var (
 	ErrDisconnected        = errors.New("disconnected from camera")
 )
 
-// Connect to the camera.
+// Connect connects to the camera.
 func Connect(ctx context.Context) (cam *A900, err error) {
 	var txp int
 	cli, err := ble.Connect(ctx, func(a ble.Advertisement) bool {
@@ -111,7 +111,13 @@ func Connect(ctx context.Context) (cam *A900, err error) {
 	}, nil
 }
 
-// Authenticate with the camera.
+// SetMaxMTU sets the MTU to the maximum allowed value.
+func (cam *A900) SetMaxMTU() error {
+	_, err := cam.ExchangeMTU(ble.MaxMTU)
+	return err
+}
+
+// Authenticate authenticates with the camera.
 func (cam *A900) Authenticate() error {
 	var err error
 	var lss, auth <-chan []byte

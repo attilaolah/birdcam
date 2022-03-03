@@ -40,11 +40,10 @@ func Main() {
 	fmt.Println("OK!")
 
 	fmt.Print("Exchanging MTU: ")
-	if mtu, err := cam.ExchangeMTU(ble.MaxMTU); err != nil {
+	if err := cam.SetMaxMTU(); err != nil {
 		fmt.Println(err)
-		return
 	} else {
-		fmt.Println("OK! TX MTU =", mtu)
+		fmt.Println("OK!")
 	}
 
 	fmt.Print("Authenticating: ")
