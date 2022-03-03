@@ -163,7 +163,7 @@ func (cam *A900) Authenticate() error {
 		return fmt.Errorf("auth error: writing stage_3: %w", err)
 	}
 
-	// STAGE4
+	// STAGE 4
 	var stage4 uint64
 	select {
 	case buf := <-auth:
