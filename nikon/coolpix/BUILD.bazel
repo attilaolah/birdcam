@@ -2,16 +2,12 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library")
 
 go_library(
     name = "coolpix",
-    srcs = [
-        "a900.go",
-        "scan.go",
-    ],
+    srcs = ["a900.go"],
     importpath = "github.com/attilaolah/birdcam/nikon/coolpix",
     visibility = ["//visibility:public"],
     deps = [
         "//nikon",
         "@com_github_go_ble_ble//:ble",
-        "@com_github_go_ble_ble//linux",
         "@org_tinygo_x_bluetooth//:bluetooth",
     ],
 )

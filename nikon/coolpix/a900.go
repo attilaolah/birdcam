@@ -345,6 +345,11 @@ func (cam *A900) WriteString(c *ble.Characteristic, s string, pad int) error {
 	return cam.WriteBytes(c, buf)
 }
 
+// ModelName returns the model name.
+func (cam *A900) ModelName() string {
+	return A900ModelName
+}
+
 // Discover the camera profile if needed.
 func (cam *A900) profile() (*ble.Profile, error) {
 	if p := cam.Profile(); p != nil {
