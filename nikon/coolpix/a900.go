@@ -4,14 +4,17 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"math/rand"
 	"strings"
 
 	"github.com/go-ble/ble"
 	"tinygo.org/x/bluetooth"
+
+	ls_sec "github.com/attilaolah/birdcam/nikon"
 )
 
 // LocalName advertised by this camera model.
-const CamName = "A900"
+const A900ModelName = "A900"
 
 // UUID generates Nikon vendor-specific UUIDs.
 func UUID(b uint16) ble.UUID {
@@ -66,24 +69,26 @@ var (
 	// ClientCharacteristicConfig [0x2902] at handles: 0x0f, 0x43, 0x54.
 )
 
-type DeviceInformation struct {
-	ManufacturerName string
-	ModelNumber      string
-	SerialNumber     string
-	SoftwareRevision string
-	FirmwareRevision string
-}
-
 type A900 struct {
 	ble.Client
 
 	TxPower int
 }
 
+var (
+	ErrCharNotFound        = errors.New("characteristic not found")
+	ErrCharNotReadable     = errors.New("characteristic does not support reading")
+	ErrCharNotWritable     = errors.New("characteristic does not support writing")
+	ErrCharNotNotifyable   = errors.New("characteristic does not support notification")
+	ErrCharNotIndicateable = errors.New("characteristic does not support indication")
+	ErrDisconnected        = errors.New("disconnected from camera")
+)
+
+// Connect to the camera.
 func Connect(ctx context.Context) (cam *A900, err error) {
 	var txp int
 	cli, err := ble.Connect(ctx, func(a ble.Advertisement) bool {
-		if a.LocalName() != CamName || !a.Connectable() {
+		if a.LocalName() != A900ModelName || !a.Connectable() {
 			return false
 		}
 		for _, s := range a.Services() {
@@ -104,46 +109,209 @@ func Connect(ctx context.Context) (cam *A900, err error) {
 	}, nil
 }
 
-func (cam *A900) DeviceInformation() (*DeviceInformation, error) {
+// Authenticate with the camera.
+func (cam *A900) Authenticate() error {
 	var err error
-	info := DeviceInformation{}
-	if info.ManufacturerName, err = cam.ReadString(ManufacturerNameString); err != nil {
-		return nil, fmt.Errorf("failed to read manufacturer name: %w", err)
+	var lss, auth <-chan []byte
+	if lss, err = cam.Notify(LSSControlPoint); err != nil {
+		return fmt.Errorf("auth error: failed to notify lss_control_point: %w", err)
 	}
-	if info.ModelNumber, err = cam.ReadString(ModelNumberString); err != nil {
-		return nil, fmt.Errorf("failed to read model number: %w", err)
-	}
-	if info.SoftwareRevision, err = cam.ReadString(SoftwareRevisionString); err != nil {
-		return nil, fmt.Errorf("failed to read software revision: %w", err)
-	}
-	if info.FirmwareRevision, err = cam.ReadString(FirmwareRevisionString); err != nil {
-		return nil, fmt.Errorf("failed to read firmware revision: %w", err)
-	}
-	if info.SerialNumber, err = cam.ReadString(LSSSerialNumberString); err != nil {
-		return nil, fmt.Errorf("failed to read serial number: %w", err)
+	if auth, err = cam.Indicate(Authentication); err != nil {
+		return fmt.Errorf("auth error: failed to indicate authentication: %w", err)
 	}
 
-	return &info, nil
+	go func() {
+		for buf := range lss {
+			// TODO: Handle notifications!
+			fmt.Printf("LSSControlPoint: received %d bytes: %#v\n", len(buf), buf)
+		}
+	}()
+
+	ls := ls_sec.New(rand.Uint32())
+	defer ls.Free()
+
+	// STAGE 1
+	stage := ls_sec.Stage1
+	stage1, err := ls.Stage1()
+	if err != nil {
+		return fmt.Errorf("auth error: stage_1: %w", err)
+	}
+	clientID := rand.Uint64()
+	if err = cam.WriteBytes(Authentication, ls_sec.Pack(stage, stage1, clientID)); err != nil {
+		return fmt.Errorf("auth error: writing stage_1: %w", err)
+	}
+
+	// STAGE 2
+	var stage2, cameraID uint64
+	select {
+	case buf := <-auth:
+		if stage, stage2, cameraID, err = ls_sec.Unpack(buf); err != nil {
+			return fmt.Errorf("auth error: reading stage_2: %w", err)
+		}
+	case <-cam.Disconnected():
+		return fmt.Errorf("auth error: reading stage_2: %w", ErrDisconnected)
+	}
+	if stage != ls_sec.Stage2 {
+		return fmt.Errorf("auth error: expected stage %d, got: %d", ls_sec.Stage2, stage)
+	}
+
+	// STAGE 3
+	stage = ls_sec.Stage3
+	stage3, err := ls.Stage3(stage2, stage1, cameraID)
+	if err != nil {
+		return fmt.Errorf("auth error: stage_3: %w", err)
+	}
+	if err = cam.WriteBytes(Authentication, ls_sec.Pack(stage, stage1, stage3)); err != nil {
+		return fmt.Errorf("auth error: writing stage_3: %w", err)
+	}
+
+	// Stage4
+	var stage4 uint64
+	select {
+	case buf := <-auth:
+		if stage, _, stage4, err = ls_sec.Unpack(buf); err != nil {
+			return fmt.Errorf("auth error: reading stage_4: %w", err)
+		}
+	case <-cam.Disconnected():
+		return fmt.Errorf("auth error: reading stage_4: %w", ErrDisconnected)
+	}
+	if stage != ls_sec.Stage4 {
+		return fmt.Errorf("auth error: expected stage %d, got: %d", ls_sec.Stage4, stage)
+	}
+
+	fmt.Println("auth: stage_4 =", stage4)
+
+	return nil
 }
 
-func (cam *A900) ReadString(c *ble.Characteristic) (string, error) {
-	p := cam.Profile()
-	if p == nil {
-		var err error
-		if p, err = cam.DiscoverProfile(false); err != nil {
-			return "", fmt.Errorf("failed to discover profile: %w", err)
-		}
+// Notify subscribes for notifications on a characteristic.
+// The returned channel should be read continuously to avoid deadlocks.
+func (cam *A900) Notify(c *ble.Characteristic) (<-chan []byte, error) {
+	return cam.subscribe(c, false)
+}
+
+// Indicate subscribes for indications on a characteristic.
+// The returned channel should be read continuously to avoid deadlocks.
+func (cam *A900) Indicate(c *ble.Characteristic) (<-chan []byte, error) {
+	return cam.subscribe(c, true)
+}
+
+// Subscribe for notifications or indications on a characteristic.
+// The returned channel should be read continuously to avoid deadlocks.
+func (cam *A900) subscribe(c *ble.Characteristic, indicate bool) (<-chan []byte, error) {
+	p, err := cam.profile()
+	if err != nil {
+		return nil, err
 	}
 
-	if c := p.FindCharacteristic(c); c == nil {
-		return "", errors.New("characteristic not found")
-	} else if c.Property|ble.CharRead == 0 {
-		return "", errors.New("characteristic cannot be read")
-	} else {
-		if buf, err := cam.ReadCharacteristic(c); err != nil {
-			return "", fmt.Errorf("failed to read characteristic: %w", err)
-		} else {
-			return strings.TrimSpace(strings.Trim(string(buf), "\x00")), nil
-		}
+	ch := make(chan []byte)
+
+	if c = p.FindCharacteristic(c); c == nil {
+		return nil, ErrCharNotFound
 	}
+	if indicate && c.Property|ble.CharIndicate == 0 {
+		return nil, ErrCharNotIndicateable
+	} else if !indicate && c.Property|ble.CharNotify == 0 {
+		return nil, ErrCharNotNotifyable
+	}
+
+	if err = cam.Subscribe(c, indicate, func(req []byte) {
+		ch <- req
+	}); err != nil {
+		return nil, fmt.Errorf("failed to subscribe: %w", err)
+	}
+
+	return ch, nil
+}
+
+func (cam *A900) ManufacturerName() (string, error) {
+	return cam.ReadString(ManufacturerNameString)
+}
+
+func (cam *A900) ModelNumber() (string, error) {
+	return cam.ReadString(ModelNumberString)
+}
+
+func (cam *A900) SoftwareRevision() (string, error) {
+	return cam.ReadString(SoftwareRevisionString)
+}
+
+func (cam *A900) FirmwareRevision() (string, error) {
+	return cam.ReadString(FirmwareRevisionString)
+}
+
+func (cam *A900) LSSSerialNumber() (string, error) {
+	return cam.ReadString(LSSSerialNumberString)
+}
+
+// Return the battery level, as a % between 0 and 100.
+func (cam *A900) BatteryLevel() (uint8, error) {
+	buf, err := cam.ReadBytes(BatteryLevel)
+	if err != nil {
+		return 0, err
+	}
+	if len(buf) != 1 {
+		return 0, fmt.Errorf("battery_level: expected 1 byte, got %d: %#v", len(buf), buf)
+	}
+
+	return buf[0], nil
+}
+
+// Read a characteristic as a raw byte slice.
+func (cam *A900) ReadBytes(c *ble.Characteristic) ([]byte, error) {
+	p, err := cam.profile()
+	if err != nil {
+		return nil, err
+	}
+
+	if c = p.FindCharacteristic(c); c == nil {
+		return nil, ErrCharNotFound
+	}
+	if c.Property|ble.CharRead == 0 {
+		return nil, ErrCharNotReadable
+	}
+	buf, err := cam.ReadCharacteristic(c)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read characteristic: %w", err)
+	}
+
+	return buf, nil
+}
+
+// Write a raw byte slice to a characteristic handle.
+func (cam *A900) WriteBytes(c *ble.Characteristic, buf []byte) error {
+	p, err := cam.profile()
+	if err != nil {
+		return err
+	}
+
+	if c = p.FindCharacteristic(c); c == nil {
+		return ErrCharNotFound
+	}
+	if c.Property|ble.CharWrite == 0 {
+		return ErrCharNotWritable
+	}
+	return cam.WriteCharacteristic(c, buf, false)
+}
+
+// Read a characteristic as a zero-padded string.
+func (cam *A900) ReadString(c *ble.Characteristic) (string, error) {
+	buf, err := cam.ReadBytes(c)
+	if err != nil {
+		return "", err
+	}
+	return strings.Trim(string(buf), "\x00"), nil
+}
+
+// Discover the camera profile if needed.
+func (cam *A900) profile() (*ble.Profile, error) {
+	if p := cam.Profile(); p != nil {
+		return p, nil
+	}
+
+	p, err := cam.DiscoverProfile(false)
+	if err != nil {
+		return nil, fmt.Errorf("failed to discover profile: %w", err)
+	}
+	return p, nil
 }

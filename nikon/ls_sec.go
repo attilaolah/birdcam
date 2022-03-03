@@ -2,8 +2,23 @@ package ls_sec
 
 // #include "nikon/ls_sec/cgo.h"
 import "C"
+import (
+	"encoding/binary"
+	"fmt"
+)
 
-const OK = 0
+const (
+	OK      = 0
+	BufSize = 17
+)
+
+const (
+	Stage1 uint8 = 1 + iota
+	Stage2
+	Stage3
+	Stage4
+	Stage5
+)
 
 type LsSec struct {
 	ls_sec C.LsSec
@@ -67,4 +82,21 @@ func (ls *LsSec) Stage4(nonce, stage_1, stage_3 uint64) error {
 		return Error(status)
 	}
 	return nil
+}
+
+// Pack the 17-byte auth buffer.
+func Pack(stage uint8, buf1, buf2 uint64) []byte {
+	buf := make([]byte, BufSize)
+	buf[0] = stage
+	binary.LittleEndian.PutUint64(buf[1:], buf1)
+	binary.LittleEndian.PutUint64(buf[9:], buf2)
+	return buf
+}
+
+// Unpack the 17-byte auth buffer.
+func Unpack(buf []byte) (uint8, uint64, uint64, error) {
+	if len(buf) != BufSize {
+		return 0, 0, 0, fmt.Errorf("ls_sec: expected %d bytes, got %d: %#v", BufSize, len(buf), buf)
+	}
+	return buf[0], binary.LittleEndian.Uint64(buf[1:]), binary.LittleEndian.Uint64(buf[9:]), nil
 }
