@@ -120,20 +120,10 @@ func (cam *A900) SetMaxMTU() error {
 // Authenticate authenticates with the camera.
 func (cam *A900) Authenticate() error {
 	var err error
-	var lss, auth <-chan []byte
-	if lss, err = cam.Notify(LSSControlPoint); err != nil {
-		return fmt.Errorf("auth error: failed to notify lss_control_point: %w", err)
-	}
+	var auth <-chan []byte
 	if auth, err = cam.Indicate(Authentication); err != nil {
 		return fmt.Errorf("auth error: failed to indicate authentication: %w", err)
 	}
-
-	go func() {
-		for buf := range lss {
-			// TODO: Handle notifications!
-			fmt.Printf("LSSControlPoint: received %d bytes: %#v\n", len(buf), buf)
-		}
-	}()
 
 	ls := ls_sec.New(rand.Uint32())
 	defer ls.Free()
@@ -173,7 +163,7 @@ func (cam *A900) Authenticate() error {
 		return fmt.Errorf("auth error: writing stage_3: %w", err)
 	}
 
-	// Stage4
+	// STAGE4
 	var stage4 uint64
 	select {
 	case buf := <-auth:
@@ -186,6 +176,8 @@ func (cam *A900) Authenticate() error {
 	if stage != ls_sec.Stage4 {
 		return fmt.Errorf("auth error: expected stage %d, got: %d", ls_sec.Stage4, stage)
 	}
+
+	// TODO: Unsubscribe from auth indications!
 
 	// TODO: Store Stage 4 value!
 	_ = stage4
