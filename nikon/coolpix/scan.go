@@ -2,6 +2,7 @@ package coolpix
 
 import (
 	"context"
+	"flag"
 	"fmt"
 	"os"
 	"os/signal"
@@ -12,7 +13,13 @@ import (
 	"github.com/go-ble/ble/linux"
 )
 
+var (
+	fClientDevice = flag.String("client_name", "BirdCam", "Identify using this name (# are replaced with random digits).")
+)
+
 func Main() {
+	flag.Parse()
+
 	ctx := context.Background()
 
 	fmt.Print("Searching for Bluetooth device: ")
@@ -55,7 +62,7 @@ func Main() {
 	}
 
 	fmt.Print("Writing ClientDeviceName: ")
-	if err = cam.WriteString(ClientDeviceName, "Android_Pixel_5_1234", 32); err != nil {
+	if err = cam.WriteString(ClientDeviceName, *fClientDevice, 32); err != nil {
 		fmt.Println("error:", err)
 	} else {
 		fmt.Println("OK!")
