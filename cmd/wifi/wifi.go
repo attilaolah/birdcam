@@ -42,6 +42,7 @@ func main() {
 		return
 	}
 	fmt.Println("OK!")
+	defer cam.Free()
 
 	fmt.Print("Exchanging MTU: ")
 	if err := cam.SetMaxMTU(); err != nil {
