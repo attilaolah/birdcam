@@ -32,7 +32,6 @@ cc_test(
 
 cc_library(
     name = "data",
-    srcs = ["data.cc"],
     hdrs = ["data.h"],
 )
 
