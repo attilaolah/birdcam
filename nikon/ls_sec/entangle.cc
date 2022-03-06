@@ -7,6 +7,8 @@
 
 namespace ls_sec {
 namespace {
+static constexpr auto const &kKM = kKeyMaterial1;
+
 // Args:
 // - a: pointer to 4 bytes of writeable memory.
 // - b: pointer to 4 bytes of writeable memory.
@@ -14,16 +16,16 @@ void entangle_2(uint32_t *a, uint32_t *b) noexcept {
   uint32_t a_1 = *a;
   uint32_t b_1 = *b;
   for (size_t i = 0; i < 16; i++) {
-    uint32_t prev = kKeyMaterial.header.data[i] ^ a_1;
-    uint32_t f0 = kKeyMaterial.data[0][(prev >> 0x18) & 0xff];
-    uint32_t f1 = kKeyMaterial.data[1][(prev >> 0x10) & 0xff];
-    uint32_t f2 = kKeyMaterial.data[2][(prev >> 0x08) & 0xff];
-    uint32_t f3 = kKeyMaterial.data[3][(prev >> 0x00) & 0xff];
+    uint32_t prev = kKM.header.data[i] ^ a_1;
+    uint32_t f0 = kKM.data[0][(prev >> 0x18) & 0xff];
+    uint32_t f1 = kKM.data[1][(prev >> 0x10) & 0xff];
+    uint32_t f2 = kKM.data[2][(prev >> 0x08) & 0xff];
+    uint32_t f3 = kKM.data[3][(prev >> 0x00) & 0xff];
     a_1 = b_1 ^ (f3 + (f2 ^ (f1 + f0)));
     b_1 = prev;
   }
-  *b = kKeyMaterial.header.x ^ a_1;
-  *a = kKeyMaterial.header.y ^ b_1;
+  *b = kKM.header.x ^ a_1;
+  *a = kKM.header.y ^ b_1;
 }
 } // namespace
 
