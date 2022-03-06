@@ -4,14 +4,8 @@
 #include <cstdint>
 
 namespace ls_sec {
-struct KeyHeader {
-  std::array<uint32_t, 16> data;
-  uint32_t x;
-  uint32_t y;
-};
-
 struct KeyMaterial {
-  KeyHeader header;
+  std::array<uint32_t, 18> header;
   std::array<std::array<uint32_t, 256>, 4> data;
 };
 
@@ -27,29 +21,26 @@ static constexpr std::array<uint64_t, 8> kSeed = {{
 }};
 
 static constexpr KeyMaterial kKeyMaterial1 = KeyMaterial{
-    .header =
-        {
-            .data = {{
-                0xE813EC15,
-                0xAE5B6CEA,
-                0x6CA89E35,
-                0x4CF05207,
-                0x4806AD72,
-                0xD5FDB061,
-                0xC7FD55E4,
-                0x46B160BE,
-                0x82AB1888,
-                0x6F1C061F,
-                0xB9ED5302,
-                0x05391939,
-                0x93D86FFC,
-                0x9C8B78FE,
-                0xC51FF235,
-                0x8CEE7883,
-            }},
-            .x = 0x96EA497E,
-            .y = 0x7C3F81CA,
-        },
+    .header = {{
+        0xE813EC15,
+        0xAE5B6CEA,
+        0x6CA89E35,
+        0x4CF05207,
+        0x4806AD72,
+        0xD5FDB061,
+        0xC7FD55E4,
+        0x46B160BE,
+        0x82AB1888,
+        0x6F1C061F,
+        0xB9ED5302,
+        0x05391939,
+        0x93D86FFC,
+        0x9C8B78FE,
+        0xC51FF235,
+        0x8CEE7883,
+        0x96EA497E,
+        0x7C3F81CA,
+    }},
     .data = {{
         {{
             0x349A3164, 0x85CABA9F, 0x0925C3EC, 0x4DFC20DB, 0x66BCF8C7,
@@ -271,29 +262,26 @@ static constexpr KeyMaterial kKeyMaterial1 = KeyMaterial{
 };
 
 static constexpr KeyMaterial kKeyMaterial2 = KeyMaterial{
-    .header =
-        KeyHeader{
-            .data = {{
-                0x243F6A88,
-                0x85A308D3,
-                0x13198A2E,
-                0x03707344,
-                0xA4093822,
-                0x299F31D0,
-                0x082EFA98,
-                0xEC4E6C89,
-                0x452821E6,
-                0x38D01377,
-                0xBE5466CF,
-                0x34E90C6C,
-                0xC0AC29B7,
-                0xC97C50DD,
-                0x3F84D5B5,
-                0xB5470917,
-            }},
-            .x = 0x9216D5D9,
-            .y = 0x8979FB1B,
-        },
+    .header = {{
+        0x243F6A88,
+        0x85A308D3,
+        0x13198A2E,
+        0x03707344,
+        0xA4093822,
+        0x299F31D0,
+        0x082EFA98,
+        0xEC4E6C89,
+        0x452821E6,
+        0x38D01377,
+        0xBE5466CF,
+        0x34E90C6C,
+        0xC0AC29B7,
+        0xC97C50DD,
+        0x3F84D5B5,
+        0xB5470917,
+        0x9216D5D9,
+        0x8979FB1B,
+    }},
     .data = {{
         {{
             0xD1310BA6, 0x98DFB5AC, 0x2FFD72DB, 0xD01ADFB7, 0xB8E1AFED,
