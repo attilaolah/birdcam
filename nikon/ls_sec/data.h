@@ -5,7 +5,7 @@
 
 namespace ls_sec {
 
-static constexpr std::array<uint32_t, 16> R16 = {{
+static constexpr std::array<uint32_t, 18> R18 = {{
     0xE813EC15,
     0xAE5B6CEA,
     0x6CA89E35,
@@ -22,6 +22,8 @@ static constexpr std::array<uint32_t, 16> R16 = {{
     0x9C8B78FE,
     0xC51FF235,
     0x8CEE7883,
+    0x96EA497E,
+    0x7C3F81CA,
 }};
 
 static constexpr std::array<uint32_t, 256> FIELD_0 = {{
