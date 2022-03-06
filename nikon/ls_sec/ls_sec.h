@@ -39,6 +39,7 @@ private:
     STAGE_3,
     STAGE_4,
     STAGE_5,
+    STAGE_6,
   };
   Stage stage_;
   uint8_t index_;
@@ -46,6 +47,7 @@ private:
 
 enum class Status {
   OK = 0,
+  ERR_ENC = -100,
   ERR_AUTH = -102,
   ERR_WRONG_STAGE = -103,
 };

@@ -66,14 +66,33 @@ void LsSec::stage_4(uint64_t nonce, uint64_t stage_1, uint64_t stage_3) {
   stage_ = Stage::STAGE_5;
 }
 
-void LsSec::generate_key(uint64_t stage_4, uint64_t device_id) {}
+void LsSec::generate_key(uint64_t stage_4, uint64_t device_id) {
+  if (stage_ != Stage::STAGE_5) {
+    throw ErrWrongStage();
+  }
+
+  // TODO!
+  //uint64_t todo; // == data[0]
+  //const uint64_t tmp = entangle({stage_4, device_id, todo});
+  // sub_15A0(data + 8, tmp, 8);
+
+  stage_ = Stage::STAGE_6;
+}
 
 std::vector<uint8_t> LsSec::encode(const std::vector<uint8_t> &data) const {
+  if (stage_ != Stage::STAGE_6) {
+    throw ErrWrongStage();
+  }
+
   // TODO!
   return data;
 }
 
 std::vector<uint8_t> LsSec::decode(const std::vector<uint8_t> &data) const {
+  if (stage_ != Stage::STAGE_6) {
+    throw ErrWrongStage();
+  }
+
   // TODO!
   return data;
 }
