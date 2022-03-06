@@ -15,12 +15,11 @@ void entangle_2(uint32_t *a, uint32_t *b) noexcept {
   uint32_t b_1 = *b;
   for (size_t i = 0; i < 16; i++) {
     uint32_t prev = R18[i] ^ a_1;
-    size_t o_0 = (prev >> 0x18) & 0xff;
-    size_t o_1 = (prev >> 0x10) & 0xff;
-    size_t o_2 = (prev >> 0x08) & 0xff;
-    size_t o_3 = (prev >> 0x00) & 0xff;
-    a_1 = b_1 ^
-          (FIELD[3][o_3] + (FIELD[2][o_2] ^ (FIELD[1][o_1] + FIELD[0][o_0])));
+    uint32_t f0 = FIELD[0][(prev >> 0x18) & 0xff];
+    uint32_t f1 = FIELD[1][(prev >> 0x10) & 0xff];
+    uint32_t f2 = FIELD[2][(prev >> 0x08) & 0xff];
+    uint32_t f3 = FIELD[3][(prev >> 0x00) & 0xff];
+    a_1 = b_1 ^ (f3 + (f2 ^ (f1 + f0)));
     b_1 = prev;
   }
   *b = R18[16] ^ a_1;
