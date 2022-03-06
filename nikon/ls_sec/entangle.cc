@@ -19,7 +19,8 @@ void entangle_2(uint32_t *a, uint32_t *b) noexcept {
     size_t o_1 = (prev >> 0x10) & 0xff;
     size_t o_2 = (prev >> 0x08) & 0xff;
     size_t o_3 = (prev >> 0x00) & 0xff;
-    a_1 = b_1 ^ (FIELD_3[o_3] + (FIELD_2[o_2] ^ (FIELD_1[o_1] + FIELD_0[o_0])));
+    a_1 = b_1 ^
+          (FIELD[3][o_3] + (FIELD[2][o_2] ^ (FIELD[1][o_1] + FIELD[0][o_0])));
     b_1 = prev;
   }
   *b = R18[16] ^ a_1;
