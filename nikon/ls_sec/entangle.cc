@@ -14,7 +14,7 @@ void entangle_2(uint32_t *a, uint32_t *b) noexcept {
   uint32_t a_1 = *a;
   uint32_t b_1 = *b;
   for (size_t i = 0; i < 16; i++) {
-    uint32_t prev = R18[i] ^ a_1;
+    uint32_t prev = R18.seed[i] ^ a_1;
     uint32_t f0 = FIELD[0][(prev >> 0x18) & 0xff];
     uint32_t f1 = FIELD[1][(prev >> 0x10) & 0xff];
     uint32_t f2 = FIELD[2][(prev >> 0x08) & 0xff];
@@ -22,8 +22,8 @@ void entangle_2(uint32_t *a, uint32_t *b) noexcept {
     a_1 = b_1 ^ (f3 + (f2 ^ (f1 + f0)));
     b_1 = prev;
   }
-  *b = R18[16] ^ a_1;
-  *a = R18[17] ^ b_1;
+  *b = R18.x ^ a_1;
+  *a = R18.y ^ b_1;
 }
 } // namespace
 

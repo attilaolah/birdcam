@@ -4,27 +4,35 @@
 #include <cstdint>
 
 namespace ls_sec {
+struct SeedMaterial {
+  std::array<uint32_t, 16> seed;
+  uint32_t x;
+  uint32_t y;
+};
 
-static constexpr std::array<uint32_t, 18> R18 = {{
-    0xE813EC15,
-    0xAE5B6CEA,
-    0x6CA89E35,
-    0x4CF05207,
-    0x4806AD72,
-    0xD5FDB061,
-    0xC7FD55E4,
-    0x46B160BE,
-    0x82AB1888,
-    0x6F1C061F,
-    0xB9ED5302,
-    0x05391939,
-    0x93D86FFC,
-    0x9C8B78FE,
-    0xC51FF235,
-    0x8CEE7883,
-    0x96EA497E,
-    0x7C3F81CA,
-}};
+// static constexpr std::array<uint32_t, 18> R18 = {{
+static constexpr SeedMaterial R18 = SeedMaterial{
+    .seed = {{
+        0xE813EC15,
+        0xAE5B6CEA,
+        0x6CA89E35,
+        0x4CF05207,
+        0x4806AD72,
+        0xD5FDB061,
+        0xC7FD55E4,
+        0x46B160BE,
+        0x82AB1888,
+        0x6F1C061F,
+        0xB9ED5302,
+        0x05391939,
+        0x93D86FFC,
+        0x9C8B78FE,
+        0xC51FF235,
+        0x8CEE7883,
+    }},
+    .x = 0x96EA497E,
+    .y = 0x7C3F81CA,
+};
 
 static constexpr std::array<std::array<uint32_t, 256>, 4> FIELD = {{
     {{
