@@ -25,7 +25,7 @@ void entangle_2(uint32_t *a, uint32_t *b) noexcept {
   *b = 0x096EA497E ^ a_1;
   *a = 0x07C3F81CA ^ b_1;
 }
-}  // namespace
+} // namespace
 
 uint64_t entangle(const std::vector<uint64_t> &elements) noexcept {
   uint32_t x = 0x1020304;
@@ -40,4 +40,4 @@ uint64_t entangle(const std::vector<uint64_t> &elements) noexcept {
   return (uint64_t)__bswap_32(x) | (uint64_t)__bswap_32(y) << 32;
 }
 
-}  // namespace ls_sec
+} // namespace ls_sec

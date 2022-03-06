@@ -37,6 +37,7 @@ type BluetoothConfigurationData struct {
 	SPPMaxDataLength uint32 `json:"spp_max_data_length"`
 }
 
+// MarshalJSON implements the json.Marshaler interface.
 func (m EncryptMode) MarshalJSON() ([]byte, error) {
 	return json.Marshal(map[EncryptMode]string{
 		Open:     "OPEN",

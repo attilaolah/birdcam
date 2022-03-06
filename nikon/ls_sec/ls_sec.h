@@ -3,6 +3,7 @@
 #include <array>
 #include <cstdint>
 #include <exception>
+#include <vector>
 
 namespace ls_sec {
 
@@ -12,7 +13,7 @@ static constexpr char kMsgWrongStage[] = "ls_sec: wrong stage error";
 static constexpr char kMsgUnknown[] = "ls_sec: unknown error";
 
 class LsSec {
- public:
+public:
   explicit LsSec(uint32_t seed) noexcept;
 
   uint64_t stage_1();
@@ -23,7 +24,13 @@ class LsSec {
 
   void stage_4(uint64_t nonce, uint64_t stage_1, uint64_t stage_3);
 
- private:
+  void generate_key(uint64_t stage_4, uint64_t device_id);
+
+  std::vector<uint8_t> encode(const std::vector<uint8_t> &data) const;
+
+  std::vector<uint8_t> decode(const std::vector<uint8_t> &data) const;
+
+private:
   const uint64_t hash_3(const uint64_t a, const uint64_t b) const;
 
   enum class Stage {
@@ -44,25 +51,25 @@ enum class Status {
 };
 
 class Error {
- public:
+public:
   Error(const Status &status) noexcept;
   const int8_t status_code() const noexcept;
   const char *status_message() const noexcept;
 
- protected:
+protected:
   Status status_;
 };
 
 class ErrAuth : public Error, public std::exception {
- public:
+public:
   ErrAuth() noexcept;
   virtual const char *what() const noexcept override;
 };
 
 class ErrWrongStage : public Error, public std::exception {
- public:
+public:
   ErrWrongStage() noexcept;
   virtual const char *what() const noexcept override;
 };
 
-}  // namespace ls_sec
+} // namespace ls_sec

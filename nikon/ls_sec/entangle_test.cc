@@ -12,5 +12,5 @@ TEST(ls_sec, entangle) {
   EXPECT_EQ(entangle({1, 2, 3, 4}), 5425026146954082698LLU);
 }
 
-}  // namespace
-}  // namespace ls_sec
+} // namespace
+} // namespace ls_sec

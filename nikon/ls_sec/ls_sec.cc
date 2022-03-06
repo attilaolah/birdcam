@@ -9,7 +9,7 @@
 namespace ls_sec {
 namespace {
 uint64_t urand64() { return ((uint64_t)rand() << 32) | rand(); }
-}  // namespace
+} // namespace
 
 LsSec::LsSec(uint32_t seed) noexcept : stage_(Stage::STAGE_1), index_(0) {
   if (seed) {
@@ -66,6 +66,18 @@ void LsSec::stage_4(uint64_t nonce, uint64_t stage_1, uint64_t stage_3) {
   stage_ = Stage::STAGE_5;
 }
 
+void LsSec::generate_key(uint64_t stage_4, uint64_t device_id) {}
+
+std::vector<uint8_t> LsSec::encode(const std::vector<uint8_t> &data) const {
+  // TODO!
+  return data;
+}
+
+std::vector<uint8_t> LsSec::decode(const std::vector<uint8_t> &data) const {
+  // TODO!
+  return data;
+}
+
 const uint64_t LsSec::hash_3(const uint64_t a, const uint64_t b) const {
   return entangle({SEED_8[index_], a, b});
 }
@@ -78,14 +90,14 @@ const int8_t Error::status_code() const noexcept {
 
 const char *Error::status_message() const noexcept {
   switch (status_) {
-    case Status::OK:
-      return kMsgOk;
-    case Status::ERR_AUTH:
-      return kMsgAuth;
-    case Status::ERR_WRONG_STAGE:
-      return kMsgWrongStage;
-    default:
-      return kMsgUnknown;
+  case Status::OK:
+    return kMsgOk;
+  case Status::ERR_AUTH:
+    return kMsgAuth;
+  case Status::ERR_WRONG_STAGE:
+    return kMsgWrongStage;
+  default:
+    return kMsgUnknown;
   }
 }
 
@@ -97,4 +109,4 @@ ErrWrongStage::ErrWrongStage() noexcept : Error(Status::ERR_WRONG_STAGE) {}
 
 const char *ErrWrongStage::what() const noexcept { return status_message(); }
 
-}  // namespace ls_sec
+} // namespace ls_sec

@@ -74,5 +74,5 @@ TEST(LsSec, stage_4) {
                ErrWrongStage);
 }
 
-}  // namespace
-}  // namespace ls_sec
+} // namespace
+} // namespace ls_sec

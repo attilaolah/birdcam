@@ -248,4 +248,4 @@ std::array<uint64_t, 8> SEED_8 = {{
     0x308AE2A97F6832CD,
     0xF4EBC7DE34E88F2A,
 }};
-}  // namespace ls_sec
+} // namespace ls_sec
