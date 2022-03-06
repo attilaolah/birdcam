@@ -3,6 +3,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"os"
@@ -85,10 +86,11 @@ func main() {
 	}
 
 	fmt.Print("Reading ConnectionConfiguration: ")
-	if buf, err := cam.ReadBytes(coolpix.ConnectionConfiguration); err != nil {
+	if cc, err := cam.ConnectionConfiguration(); err != nil {
 		fmt.Println("error:", err)
 	} else {
-		fmt.Println("OK! ConnectionConfiguration:", buf)
+		buf, _ := json.Marshal(cc)
+		fmt.Println("OK! ConnectionConfiguration:", string(buf))
 	}
 
 	fmt.Print("Enabling WiFi: ")
@@ -106,7 +108,7 @@ func main() {
 		select {
 		case <-time.After(time.Second / 10):
 			if !quitting {
-				fmt.Printf("\rCONN %s [%s] / TX %d / RSSI %d", cam.ModelName(), cam.Addr(), cam.TxPower, cam.ReadRSSI())
+				fmt.Printf("\rCONN %s [%s] / RSSI %d", cam.ModelName(), cam.Addr(), cam.ReadRSSI())
 			}
 		case <-quit:
 			quitting = true

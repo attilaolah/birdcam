@@ -84,6 +84,16 @@ func (ls *LsSec) Stage4(nonce, stage_1, stage_3 uint64) error {
 	return nil
 }
 
+// Encode implements the Encoder interface.
+func (ls *LsSec) Encode(data []byte) ([]byte, error) {
+	return []byte(fmt.Sprintf("TODO: Encode(%#v)", data)), nil
+}
+
+// Decoder implements the Decored interface.
+func (ls *LsSec) Decode(data []byte) ([]byte, error) {
+	return []byte(fmt.Sprintf("TODO: Decode(%#v)", data)), nil
+}
+
 // Pack the 17-byte auth buffer.
 func Pack(stage uint8, buf1, buf2 uint64) []byte {
 	buf := make([]byte, BufSize)
@@ -100,3 +110,19 @@ func Unpack(buf []byte) (uint8, uint64, uint64, error) {
 	}
 	return buf[0], binary.LittleEndian.Uint64(buf[1:]), binary.LittleEndian.Uint64(buf[9:]), nil
 }
+
+// Encoder interface to use for encoding only.
+type Encoder interface {
+	Encode(data []byte) ([]byte, error)
+}
+
+// Decoder interface to use for decoding only.
+type Decoder interface {
+	Decode(data []byte) ([]byte, error)
+}
+
+// LsSec implements both these interfaces.
+var (
+	_ Encoder = &LsSec{}
+	_ Decoder = &LsSec{}
+)

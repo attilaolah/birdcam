@@ -73,8 +73,7 @@ var (
 
 type A900 struct {
 	ble.Client
-
-	TxPower int
+	ls *ls_sec.LsSec
 }
 
 var (
@@ -84,18 +83,18 @@ var (
 	ErrCharNotNotifyable   = errors.New("characteristic does not support notification")
 	ErrCharNotIndicateable = errors.New("characteristic does not support indication")
 	ErrDisconnected        = errors.New("disconnected from camera")
+	ErrUnauthenticated     = errors.New("not authenticated")
+	ErrNoData              = errors.New("no data")
 )
 
 // Connect connects to the camera.
 func Connect(ctx context.Context) (cam *A900, err error) {
-	var txp int
 	cli, err := ble.Connect(ctx, func(a ble.Advertisement) bool {
 		if a.LocalName() != A900ModelName || !a.Connectable() {
 			return false
 		}
 		for _, s := range a.Services() {
 			if NIKON.UUID.Equal(s) {
-				txp = a.TxPowerLevel()
 				return true
 			}
 		}
@@ -106,9 +105,14 @@ func Connect(ctx context.Context) (cam *A900, err error) {
 	}
 
 	return &A900{
-		Client:  cli,
-		TxPower: txp,
+		Client: cli,
+		ls:     ls_sec.New(rand.Uint32()),
 	}, nil
+}
+
+// Free releases any manually allocated memory.
+func (cam *A900) Free() {
+	cam.ls.Free()
 }
 
 // SetMaxMTU sets the MTU to the maximum allowed value.
@@ -125,12 +129,9 @@ func (cam *A900) Authenticate() error {
 		return fmt.Errorf("auth error: failed to indicate authentication: %w", err)
 	}
 
-	ls := ls_sec.New(rand.Uint32())
-	defer ls.Free()
-
 	// STAGE 1
 	stage := ls_sec.Stage1
-	stage1, err := ls.Stage1()
+	stage1, err := cam.ls.Stage1()
 	if err != nil {
 		return fmt.Errorf("auth error: stage_1: %w", err)
 	}
@@ -155,7 +156,7 @@ func (cam *A900) Authenticate() error {
 
 	// STAGE 3
 	stage = ls_sec.Stage3
-	stage3, err := ls.Stage3(stage2, stage1, cameraID)
+	stage3, err := cam.ls.Stage3(stage2, stage1, cameraID)
 	if err != nil {
 		return fmt.Errorf("auth error: stage_3: %w", err)
 	}
@@ -223,6 +224,14 @@ func (cam *A900) subscribe(c *ble.Characteristic, indicate bool) (<-chan []byte,
 	}
 
 	return ch, nil
+}
+
+func (cam *A900) ConnectionConfiguration() (*ConnectionConfigurationData, error) {
+	buf, err := cam.ReadBytes(ConnectionConfiguration)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read connection configuration: %w", err)
+	}
+	return DecodeConnectionConfiguration(cam.ls, buf)
 }
 
 func (cam *A900) SetWiFi(on bool) error {
