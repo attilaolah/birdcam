@@ -5,11 +5,14 @@
 #include <exception>
 #include <vector>
 
+#include "data.h"
+
 namespace ls_sec {
 
 static constexpr char kMsgOk[] = "ls_sec: ok";
-static constexpr char kMsgAuth[] = "ls_sec: authentication error";
-static constexpr char kMsgWrongStage[] = "ls_sec: wrong stage error";
+static constexpr char kMsgAlign[] = "ls_sec: alignment error";
+static constexpr char kMsgAuthn[] = "ls_sec: authentication error";
+static constexpr char kMsgStage[] = "ls_sec: wrong stage error";
 static constexpr char kMsgUnknown[] = "ls_sec: unknown error";
 
 class LsSec {
@@ -33,6 +36,8 @@ public:
 private:
   const uint64_t hash_3(const uint64_t a, const uint64_t b) const;
 
+  void set_secret(const uint64_t nonce, const uint64_t stage_1);
+
   enum class Stage {
     STAGE_1,
     STAGE_2,
@@ -41,15 +46,17 @@ private:
     STAGE_5,
     STAGE_6,
   };
-  Stage stage_;
-  uint8_t index_;
+  Stage stage_ = Stage::STAGE_1;
+  uint8_t index_ = 0;
+  uint64_t secret_ = 0;
+  KeyMaterial key_; // TODO: Set to kKeyMaterial2!
 };
 
 enum class Status {
   OK = 0,
-  ERR_ENC = -100,
-  ERR_AUTH = -102,
-  ERR_WRONG_STAGE = -103,
+  ERR_ALIGN = -100,
+  ERR_AUTHN = -102,
+  ERR_STAGE = -103,
 };
 
 class Error {
@@ -62,15 +69,21 @@ protected:
   Status status_;
 };
 
-class ErrAuth : public Error, public std::exception {
+class ErrAlign : public Error, public std::exception {
 public:
-  ErrAuth() noexcept;
+  ErrAlign() noexcept;
   virtual const char *what() const noexcept override;
 };
 
-class ErrWrongStage : public Error, public std::exception {
+class ErrAuthn : public Error, public std::exception {
 public:
-  ErrWrongStage() noexcept;
+  ErrAuthn() noexcept;
+  virtual const char *what() const noexcept override;
+};
+
+class ErrStage : public Error, public std::exception {
+public:
+  ErrStage() noexcept;
   virtual const char *what() const noexcept override;
 };
 
