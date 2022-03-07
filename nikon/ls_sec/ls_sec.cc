@@ -13,7 +13,7 @@ constexpr size_t kAlign = sizeof(uint64_t) / sizeof(uint8_t);
 
 uint64_t urand64() { return ((uint64_t)rand() << 32) | rand(); }
 
-void _init_key(KeyMaterial &key, uint64_t seed) {
+void populate_key(KeyMaterial &key, uint64_t seed) {
   for (size_t i = 0; i < key.header.size(); i++) {
     uint32_t a = *((uint8_t *)&seed + (i + 0) % 8);
     uint32_t b = *((uint8_t *)&seed + (i + 1) % 8);
@@ -121,7 +121,7 @@ void LsSec::generate_key(uint64_t stage_4, uint64_t device_id) {
     throw ErrStage();
   }
 
-  _init_key(key_, entangle({stage_4, device_id, secret_}));
+  populate_key(key_, entangle({stage_4, device_id, secret_}));
 
   stage_ = Stage::STAGE_6;
 }
