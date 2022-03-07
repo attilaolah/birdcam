@@ -48,7 +48,7 @@ private:
   Stage stage_ = Stage::STAGE_1;
   uint8_t index_ = 0;
   uint64_t secret_ = 0;
-  KeyMaterial key_; // TODO: Set to kKeyMaterial2!
+  KeyMaterial key_;
 };
 
 enum class Status {
