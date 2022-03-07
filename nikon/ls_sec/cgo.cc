@@ -7,9 +7,9 @@
 
 #define OK 0
 
-int8_t ls_sec_err_auth = static_cast<int8_t>(ls_sec::Status::ERR_AUTH);
-int8_t ls_sec_err_wrong_stage =
-    static_cast<int8_t>(ls_sec::Status::ERR_WRONG_STAGE);
+int8_t ls_sec_err_align = static_cast<int8_t>(ls_sec::Status::ERR_ALIGN);
+int8_t ls_sec_err_authn = static_cast<int8_t>(ls_sec::Status::ERR_AUTHN);
+int8_t ls_sec_err_stage = static_cast<int8_t>(ls_sec::Status::ERR_STAGE);
 
 LsSec ls_sec_new(uint32_t seed) {
   ls_sec::LsSec *ret = new ls_sec::LsSec(seed);

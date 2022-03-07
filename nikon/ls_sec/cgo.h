@@ -9,8 +9,9 @@ extern "C" {
 
 typedef void *LsSec;
 
-extern int8_t ls_sec_err_auth;
-extern int8_t ls_sec_err_wrong_stage;
+extern int8_t ls_sec_err_align;
+extern int8_t ls_sec_err_authn;
+extern int8_t ls_sec_err_stage;
 
 LsSec ls_sec_new(uint32_t seed);
 void ls_sec_free(LsSec ptr);

@@ -5,6 +5,7 @@ import "C"
 import (
 	"encoding/binary"
 	"fmt"
+	"unsafe"
 )
 
 const (
@@ -27,13 +28,15 @@ type LsSec struct {
 type Error int8
 
 var (
-	ErrAuth       Error
-	ErrWrongStage Error
+	ErrAlign Error
+	ErrAuthn Error
+	ErrStage Error
 )
 
 func init() {
-	ErrAuth = Error(C.ls_sec_err_auth)
-	ErrWrongStage = Error(C.ls_sec_err_wrong_stage)
+	ErrAlign = Error(C.ls_sec_err_align)
+	ErrAuthn = Error(C.ls_sec_err_authn)
+	ErrStage = Error(C.ls_sec_err_stage)
 }
 
 func (err Error) Error() string {
@@ -84,14 +87,29 @@ func (ls *LsSec) Stage4(nonce, stage_1, stage_3 uint64) error {
 	return nil
 }
 
+func (ls *LsSec) GenerateKey(stage_4, device_id uint64) error {
+	if status := C.ls_sec_generate_key(ls.ls_sec, C.uint64_t(stage_4), C.uint64_t(device_id)); status != OK {
+		return Error(status)
+	}
+	return nil
+}
+
 // Encode implements the Encoder interface.
 func (ls *LsSec) Encode(data []byte) ([]byte, error) {
-	return []byte(fmt.Sprintf("TODO: Encode(%#v)", data)), nil
+	result := make([]byte, len(data))
+	if status := C.ls_sec_encode(ls.ls_sec, (*C.uint8_t)(unsafe.Pointer(&data[0])), (*C.uint8_t)(unsafe.Pointer(&result[0])), C.size_t(len(data))); status != OK {
+		return nil, Error(status)
+	}
+	return result, nil
 }
 
 // Decoder implements the Decored interface.
 func (ls *LsSec) Decode(data []byte) ([]byte, error) {
-	return []byte(fmt.Sprintf("TODO: Decode(%#v)", data)), nil
+	result := make([]byte, len(data))
+	if status := C.ls_sec_decode(ls.ls_sec, (*C.uint8_t)(unsafe.Pointer(&data[0])), (*C.uint8_t)(unsafe.Pointer(&result[0])), C.size_t(len(data))); status != OK {
+		return nil, Error(status)
+	}
+	return result, nil
 }
 
 // Pack the 17-byte auth buffer.
