@@ -1,6 +1,5 @@
 #include "entangle.h"
 
-#include <cstdio> // TODO: remove!
 #include <cstdlib>
 #include <limits>
 
