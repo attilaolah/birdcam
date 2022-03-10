@@ -6,6 +6,8 @@ def _patched_so_impl(ctx):
 
     for key, val in ctx.attr.patch_str.items():
         args.add("-patch", "=".join((key, val)))
+    for dep in ctx.attr.remove_deps:
+        args.add("-rmdep", dep)
 
     ctx.actions.run(
         executable = ctx.executable._patch_so,
@@ -41,6 +43,9 @@ patched_so = rule(
         ),
         "patch_str": attr.string_dict(
             doc = "Dict of string table items to patch.",
+        ),
+        "remove_deps": attr.string_list(
+            doc = "List of dependencies (.so files) to remove.",
         ),
         "_patch_so": attr.label(
             default = "//cmd/patch_so",

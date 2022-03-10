@@ -78,6 +78,7 @@ type ELF64 interface {
 
 	// Mutators
 	PatchStr64(string, string) error
+	RmDtNeeded64(string) error
 }
 
 type class uint8
@@ -195,7 +196,6 @@ func (e *elf) StrTab64() []string {
 }
 
 // Update a string table entry.
-// Currently the size of both entries must be the same.
 func (e *elf) PatchStr64(from, to string) error {
 	if len(to) > len(from) {
 		return fmt.Errorf("cannot grow string: %d > %d", len(to), len(from))
@@ -224,6 +224,40 @@ func (e *elf) PatchStr64(from, to string) error {
 	}
 
 	return fmt.Errorf("string not found: %q", from)
+}
+
+func (e *elf) RmDtNeeded64(dep string) error {
+	offset := 0
+	found := false
+	stro, _ := e.str64()
+	var prev *C.Elf64_Dyn
+	for _, d := range e.PTDynamic64() {
+		if d.d_tag == C.DT_NEEDED {
+			offset = int(*(*C.Elf64_Addr)(unsafe.Pointer(&d.d_un[0])))
+			if string(e.data[stro+offset:stro+offset+len(dep)+1]) == dep+"\x00" {
+				found = true
+				prev = d
+				continue
+			}
+		}
+		if !found {
+			continue
+		}
+		// Move back the current entry:
+		prev.d_tag = d.d_tag
+		copy(prev.d_un[:], d.d_un[:])
+		prev = d
+	}
+	if !found {
+		return fmt.Errorf("dependency not found: %q", dep)
+	}
+
+	// Zero out the last entry:
+	prev.d_tag = C.DT_NULL
+	zeros := make([]byte, len(prev.d_un))
+	copy(prev.d_un[:], zeros)
+
+	return nil
 }
 
 func (e *elf) str64() (offset, size int) {

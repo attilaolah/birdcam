@@ -14,13 +14,16 @@ var (
 	src = flag.String("src", "", "Input file path. Must be a shared object (.so file).")
 	dst = flag.String("dst", "", "Output file path.")
 
-	patch strmap = map[string]string{}
+	patches strmap = map[string]string{}
+	rmdeps  strlst = []string{}
 )
 
 type strmap map[string]string
+type strlst []string
 
 func init() {
-	flag.Var(&patch, "patch", "String table item (key=value) to patch. Can be repeated.")
+	flag.Var(&patches, "patch", "String table item (key=value) to patch. Can be repeated.")
+	flag.Var(&rmdeps, "rmdep", "List of dependencies (.so files) to remove.")
 }
 
 func main() {
@@ -38,9 +41,16 @@ func main() {
 		os.Exit(1)
 	}
 
-	for k, v := range patch {
+	for k, v := range patches {
 		if err := so.PatchStr64(k, v); err != nil {
 			fmt.Println("error patching:", err)
+			os.Exit(1)
+		}
+	}
+
+	for _, v := range rmdeps {
+		if err := so.RmDtNeeded64(v); err != nil {
+			fmt.Println("error removing dep:", err)
 			os.Exit(1)
 		}
 	}
@@ -72,6 +82,10 @@ func (m *strmap) String() string {
 	return fmt.Sprint(*m)
 }
 
+func (l *strlst) String() string {
+	return fmt.Sprint(*l)
+}
+
 func (m *strmap) Set(val string) error {
 	// TODO: Use strings.Cut() when available!
 	parts := strings.SplitN(val, "=", 2)
@@ -80,5 +94,10 @@ func (m *strmap) Set(val string) error {
 	}
 
 	(*m)[parts[0]] = parts[1]
+	return nil
+}
+
+func (l *strlst) Set(val string) error {
+	*l = append(*l, val)
 	return nil
 }

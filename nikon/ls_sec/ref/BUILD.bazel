@@ -13,4 +13,8 @@ patched_so(
         "LIBC": "LIBW",
         "libc.so": "libw.so",
     },
+    remove_deps = [
+        "libdl.so",
+        "libm.so",
+    ],
 )
