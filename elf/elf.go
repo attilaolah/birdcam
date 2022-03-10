@@ -1,32 +1,6 @@
 package elf
 
-/*
-#include <linux/elf.h>
-
-Elf32_Ehdr *as_elf32_ehdr(const unsigned char *buf) {
-	return (Elf32_Ehdr*)buf;
-}
-
-Elf64_Ehdr *as_elf64_ehdr(const unsigned char *buf) {
-	return (Elf64_Ehdr*)buf;
-}
-
-Elf32_Phdr *as_elf32_phdr(const unsigned char *buf) {
-	return (Elf32_Phdr*)buf;
-}
-
-Elf64_Phdr *as_elf64_phdr(const unsigned char *buf) {
-	return (Elf64_Phdr*)buf;
-}
-
-Elf32_Dyn *as_elf32_dyn(const unsigned char *buf) {
-	return (Elf32_Dyn*)buf;
-}
-
-Elf64_Dyn *as_elf64_dyn(const unsigned char *buf) {
-	return (Elf64_Dyn*)buf;
-}
-*/
+// #include <linux/elf.h>
 import "C"
 
 import (
@@ -127,11 +101,11 @@ func (e *elf) Data() []byte {
 }
 
 func (e *elf) Header32() *C.Elf32_Ehdr {
-	return C.as_elf32_ehdr((*C.uchar)(unsafe.Pointer(&e.data[0])))
+	return (*C.Elf32_Ehdr)(unsafe.Pointer(&e.data[0]))
 }
 
 func (e *elf) Header64() *C.Elf64_Ehdr {
-	return C.as_elf64_ehdr((*C.uchar)(unsafe.Pointer(&e.data[0])))
+	return (*C.Elf64_Ehdr)(unsafe.Pointer(&e.data[0]))
 }
 
 func (e *elf) PHT64() []*C.Elf64_Phdr {
@@ -142,7 +116,7 @@ func (e *elf) PHT64() []*C.Elf64_Phdr {
 
 	res := make([]*C.Elf64_Phdr, n)
 	for i := 0; i < n; i++ {
-		res[i] = C.as_elf64_phdr((*C.uchar)(unsafe.Pointer(&e.data[(i*size)+offset])))
+		res[i] = (*C.Elf64_Phdr)(unsafe.Pointer(&e.data[(i*size)+offset]))
 	}
 
 	return res
@@ -163,7 +137,7 @@ func (e *elf) PTDynamic64() []*C.Elf64_Dyn {
 	res := []*C.Elf64_Dyn{}
 	offset := int(p.p_offset)
 	for {
-		dyn := C.as_elf64_dyn((*C.uchar)(unsafe.Pointer(&e.data[offset])))
+		dyn := (*C.Elf64_Dyn)(unsafe.Pointer(&e.data[offset]))
 		if dyn.d_tag == C.DT_NULL {
 			break
 		}
