@@ -57,6 +57,7 @@ genrule(
         "@platforms//cpu:x86_64",
         "@platforms//os:linux",
     ],
+    visibility = ["//nikon:__subpackages__"],
 )
 
 cc_library(

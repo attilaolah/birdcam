@@ -15,14 +15,8 @@ def _patched_so_impl(ctx):
         mnemonic = "PATCH",
     )
 
-    #library = cc_common.create_library_to_link(
-    #    actions = ctx.actions,
-    #    #dynamic_library = out,
-    #    #cc_toolchain = find_cc_toolchain(ctx),
-    #)
     linker_input = cc_common.create_linker_input(
         owner = ctx.label,
-        #libraries = depset([library]),
         user_link_flags = [
             "-L{}".format(out.dirname),
             "-l{}".format(ctx.attr.name),
@@ -54,9 +48,7 @@ patched_so = rule(
             cfg = "exec",
         ),
         "_cc_toolchain": attr.label(
-            default = Label(
-                "@rules_cc//cc:current_cc_toolchain", # copybara-use-repo-external-label
-            ),
+            default = Label("@rules_cc//cc:current_cc_toolchain"),
         ),
     },
 )

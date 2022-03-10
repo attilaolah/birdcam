@@ -1,0 +1,16 @@
+load("//cmd/patch_so:patch_so.bzl", "patched_so")
+
+cc_binary(
+    name = "x86_64",
+    srcs = ["x86_64.cc"],
+    deps = [":ls_sec_jni"],
+)
+
+patched_so(
+    name = "ls_sec_jni",
+    src = "//third_party/snapbridge:ls_sec_jni_so",
+    patch_str = {
+        "LIBC": "LIBW",
+        "libc.so": "libw.so",
+    },
+)
