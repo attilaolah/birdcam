@@ -15,9 +15,6 @@ var (
 		C.ELFDATA2MSB: binary.BigEndian,
 	}
 
-	Class32 class = C.ELFCLASS32
-	Class64 class = C.ELFCLASS64
-
 	ABINone  osabi = C.ELFOSABI_NONE
 	ABILinux osabi = C.ELFOSABI_LINUX
 )

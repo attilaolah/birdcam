@@ -9,6 +9,8 @@ import (
 	"unsafe"
 )
 
+var Class64 class = C.ELFCLASS64
+
 type ELF64 interface {
 	// Header
 	Header64() *C.Elf64_Ehdr
@@ -83,12 +85,12 @@ func (e *elf) StrTab64() []string {
 			pos += 1
 			continue
 		}
-		zero := bytes.IndexByte(e.data[pos:], 0x00)
-		if zero == -1 {
+		zpos := bytes.IndexByte(e.data[pos:], 0x00)
+		if zpos == -1 {
 			break
 		}
-		res = append(res, string(e.data[pos:pos+zero]))
-		pos += zero
+		res = append(res, string(e.data[pos:pos+zpos]))
+		pos += zpos
 	}
 
 	return res
@@ -108,18 +110,18 @@ func (e *elf) PatchStr64(from, to string) error {
 			pos += 1
 			continue
 		}
-		zero := bytes.IndexByte(e.data[pos:], 0x00)
-		if zero == -1 {
+		zpos := bytes.IndexByte(e.data[pos:], 0x00)
+		if zpos == -1 {
 			break
 		}
-		s := string(e.data[pos : pos+zero])
+		s := string(e.data[pos : pos+zpos])
 		if s == from {
 			copy(e.data[pos:pos+len(to)], to)
-			// Pan with zeroes if necessary, until the previous end mark:
-			copy(e.data[pos+len(to):pos+zero], make([]byte, zero-len(to)))
+			// Pad with zeroes if necessary, until the previous end mark:
+			copy(e.data[pos+len(to):pos+zpos], make([]byte, zpos-len(to)))
 			return nil
 		}
-		pos += zero
+		pos += zpos
 	}
 
 	return fmt.Errorf("string not found: %q", from)

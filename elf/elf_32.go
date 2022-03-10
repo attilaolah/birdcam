@@ -5,6 +5,8 @@ import "C"
 
 import "unsafe"
 
+var Class32 class = C.ELFCLASS32
+
 type ELF32 interface {
 	Header32() *C.Elf32_Ehdr
 }
