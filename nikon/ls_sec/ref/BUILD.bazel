@@ -15,16 +15,14 @@ patched_so(
     patch_str = {
         # Match rule name.
         "libLsSec-jni.so": "libls_sec.so",
-        # Rename `libc.so` dependency to `libw.so`, then give it a custom one:
-        "libc.so": "libw.so",
-        # Also rename its version string:
-        "LIBC": "LIBW",
     },
     # Cannot remove libc.so dependency without also removing its version from the map.
     remove_deps = [
         # keep sorted
+        "libc.so",
         "libdl.so",
         "libm.so",
+        "libstdc++.so",
     ],
 )
 
