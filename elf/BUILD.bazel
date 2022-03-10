@@ -2,7 +2,11 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library")
 
 go_library(
     name = "elf",
-    srcs = ["elf.go"],
+    srcs = [
+        "elf.go",
+        "elf_32.go",
+        "elf_64.go",
+    ],
     cgo = True,
     importpath = "github.com/attilaolah/birdcam/elf",
     visibility = ["//visibility:public"],

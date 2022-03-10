@@ -30,40 +30,15 @@ type ELF interface {
 	Data() []byte
 }
 
-type ELF32 interface {
-	Header32() *C.Elf32_Ehdr
-}
-
-type ELF64 interface {
-	// Header
-	Header64() *C.Elf64_Ehdr
-
-	// Program header table
-	PHT64() []*C.Elf64_Phdr
-
-	// Section header table
-	// TODO!
-
-	// Sections
-	PTDynamic64() []*C.Elf64_Dyn
-
-	// Tables
-	StrTab64() []string
-
-	// Mutators
-	PatchStr64(string, string) error
-	RmDtNeeded64(string) error
-}
-
-type class uint8
-type osabi uint8
-
 type elf struct {
 	data []byte
 	cls  class
 	abi  osabi
 	bo   binary.ByteOrder
 }
+
+type class uint8
+type osabi uint8
 
 func Parse(data []byte) (ELF, error) {
 	if l := len(data); l < C.EI_NIDENT {
@@ -98,14 +73,6 @@ func Parse(data []byte) (ELF, error) {
 
 func (e *elf) Data() []byte {
 	return e.data
-}
-
-func (e *elf) Header32() *C.Elf32_Ehdr {
-	return (*C.Elf32_Ehdr)(unsafe.Pointer(&e.data[0]))
-}
-
-func (e *elf) Header64() *C.Elf64_Ehdr {
-	return (*C.Elf64_Ehdr)(unsafe.Pointer(&e.data[0]))
 }
 
 func (e *elf) PHT64() []*C.Elf64_Phdr {
