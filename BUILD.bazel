@@ -1,9 +1,13 @@
 load("@bazel_gazelle//:def.bzl", "gazelle")
+load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 load("@com_github_bazelbuild_buildtools//buildifier:def.bzl", "buildifier")
 
-buildifier(
-    name = "buildifier",
-)
+buildifier(name = "buildifier")
 
 # gazelle:prefix github.com/attilaolah/birdcam
 gazelle(name = "gazelle")
+
+bzl_library(
+    name = "deps_bzl",
+    srcs = ["deps.bzl"],
+)

@@ -1,4 +1,5 @@
 load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 
 go_library(
     name = "patch_so_lib",
@@ -12,4 +13,9 @@ go_binary(
     name = "patch_so",
     embed = [":patch_so_lib"],
     visibility = ["//visibility:public"],
+)
+
+bzl_library(
+    name = "patch_so_bzl",
+    srcs = ["patch_so.bzl"],
 )
