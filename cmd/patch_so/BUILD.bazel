@@ -1,0 +1,15 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "patch_so_lib",
+    srcs = ["patch_so.go"],
+    importpath = "github.com/attilaolah/birdcam/cmd/patch_so",
+    visibility = ["//visibility:private"],
+    deps = ["//elf"],
+)
+
+go_binary(
+    name = "patch_so",
+    embed = [":patch_so_lib"],
+    visibility = ["//visibility:public"],
+)
