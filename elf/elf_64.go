@@ -220,6 +220,18 @@ func (e *elf) RmDtNeeded64(dep string) error {
 			// This is the last  Elf64_Verneed entry; mark the previous one as last.
 			vprev.vn_next = 0
 		}
+
+		vnaoffset := voffset + int(vn.vn_aux)
+		for {
+			vna := (*C.Elf64_Vernaux)(unsafe.Pointer(&e.data[vnaoffset]))
+			fmt.Printf("TODO: RM version deps: %q\n", sm[int(vna.vna_name)])
+			vnaoffset += int(vna.vna_next)
+
+			if vna.vna_next == 0 {
+				break
+			}
+		}
+
 		newSize -= 1
 		voffset += int(vn.vn_next)
 		vprev = vn
