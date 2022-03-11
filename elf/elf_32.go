@@ -1,6 +1,6 @@
 package elf
 
-// #include <linux/elf.h>
+// #include <elf.h>
 import "C"
 
 import "unsafe"

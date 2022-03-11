@@ -1,11 +1,12 @@
 package elf
 
-// #include <linux/elf.h>
+// #include <elf.h>
 import "C"
 
 import (
 	"bytes"
 	"fmt"
+	"sort"
 	"unsafe"
 )
 
@@ -75,11 +76,11 @@ func (e *elf) PTDynamic64() []*C.Elf64_Dyn {
 	return res
 }
 
-func (e *elf) StrTab64() []string {
+func (e *elf) StrMap64() map[int]string {
 	offset, size := e.str64()
 
 	pos := offset
-	res := []string{}
+	res := map[int]string{}
 	for pos < offset+size {
 		if e.data[pos] == 0 {
 			pos += 1
@@ -89,11 +90,29 @@ func (e *elf) StrTab64() []string {
 		if zpos == -1 {
 			break
 		}
-		res = append(res, string(e.data[pos:pos+zpos]))
+		res[pos-offset] = string(e.data[pos : pos+zpos])
 		pos += zpos
 	}
 
 	return res
+}
+
+func (e *elf) StrTab64() []string {
+	m := e.StrMap64()
+	keys := make([]int, len(m))
+
+	i := 0
+	for key := range m {
+		keys[i] = key
+		i++
+	}
+	sort.Ints(keys)
+
+	vals := make([]string, len(m))
+	for i, key := range keys {
+		vals[i] = m[key]
+	}
+	return vals
 }
 
 // Update a string table entry.
@@ -128,25 +147,26 @@ func (e *elf) PatchStr64(from, to string) error {
 }
 
 func (e *elf) RmDtNeeded64(dep string) error {
-	offset := 0
 	found := false
-	stro, _ := e.str64()
+	sm := e.StrMap64()
 	var prev *C.Elf64_Dyn
+	dynmap := map[C.Elf64_Sxword][](*C.Elf64_Dyn){}
 	for _, d := range e.PTDynamic64() {
 		if d.d_tag == C.DT_NEEDED {
-			offset = int(*(*C.Elf64_Addr)(unsafe.Pointer(&d.d_un[0])))
-			if string(e.data[stro+offset:stro+offset+len(dep)+1]) == dep+"\x00" {
+			if sm[int(*(*C.Elf64_Addr)(unsafe.Pointer(&d.d_un[0])))] == dep {
 				found = true
 				prev = d
 				continue
 			}
 		}
 		if !found {
+			dynmap[d.d_tag] = append(dynmap[d.d_tag], d)
 			continue
 		}
 		// Move back the current entry:
 		prev.d_tag = d.d_tag
 		copy(prev.d_un[:], d.d_un[:])
+		dynmap[d.d_tag] = append(dynmap[d.d_tag], prev)
 		prev = d
 	}
 	if !found {
@@ -158,7 +178,95 @@ func (e *elf) RmDtNeeded64(dep string) error {
 	zeros := make([]byte, len(prev.d_un))
 	copy(prev.d_un[:], zeros)
 
+	if len(dynmap[C.DT_VERNEED]) == 0 {
+		// DT_VERNEED section not found.
+		return nil
+	}
+	if n := len(dynmap[C.DT_VERNEED]); n != 1 {
+		return fmt.Errorf("expected at most one dt_verneed section, found: %d", n)
+	}
+	if n := len(dynmap[C.DT_VERNEEDNUM]); n != 1 {
+		return fmt.Errorf("expected exactly one dt_verneednum, found: %d", n)
+	}
+
+	var vprev *C.Elf64_Verneed
+	dtoffs := dynmap[C.DT_VERNEED][0]
+	dtsize := dynmap[C.DT_VERNEEDNUM][0]
+
+	voffset := int(*(*C.Elf64_Addr)(unsafe.Pointer(&dtoffs.d_un[0])))
+	vsize := int(*(*C.Elf64_Xword)(unsafe.Pointer(&dtsize.d_un[0])))
+	newOffset := voffset
+	newSize := vsize
+
+	for n := 0; n < vsize; n++ {
+		vn := (*C.Elf64_Verneed)(unsafe.Pointer(&e.data[voffset]))
+		if vn.vn_version != C.VER_NEED_CURRENT {
+			return fmt.Errorf("bad vn_version, expected %d, got: %d", C.VER_NEED_CURRENT, vn.vn_version)
+		}
+
+		if sm[int(vn.vn_file)] != dep {
+			voffset += int(vn.vn_next)
+			vprev = vn
+			continue
+		}
+
+		if n == 0 {
+			// This is the first Elf64_Verneed entry; point here directly.
+			newOffset = voffset
+		} else if vn.vn_next > 0 {
+			// This is not the first, nor the last Elf64_Verneed entry; re-link prev to next.
+			vprev.vn_next += vn.vn_next
+		} else {
+			// This is the last  Elf64_Verneed entry; mark the previous one as last.
+			vprev.vn_next = 0
+		}
+		newSize -= 1
+		voffset += int(vn.vn_next)
+		vprev = vn
+	}
+	if newOffset == voffset && newSize == vsize {
+		// Nothing to update.
+		return nil
+	}
+
+	if newSize == 0 {
+		e.RmDt64(C.DT_VERNEED)
+		e.RmDt64(C.DT_VERNEEDNUM)
+		return nil
+	}
+
+	// Update DT_VERNEED & DT_VERNEEDNUM entries.
+	*(*C.Elf64_Addr)(unsafe.Pointer(&dtoffs.d_un[0])) = C.Elf64_Addr(newOffset)
+	*(*C.Elf64_Xword)(unsafe.Pointer(&dtsize.d_un[0])) = C.Elf64_Xword(newSize)
 	return nil
+
+}
+
+func (e *elf) RmDt64(tag C.Elf64_Sxword) {
+	found := false
+	var prev *C.Elf64_Dyn
+	for _, d := range e.PTDynamic64() {
+		if d.d_tag == tag {
+			found = true
+			prev = d
+			continue
+		}
+		if !found {
+			continue
+		}
+		// Move back the current entry:
+		prev.d_tag = d.d_tag
+		copy(prev.d_un[:], d.d_un[:])
+		prev = d
+	}
+	if !found {
+		return
+	}
+
+	// Zero out the last entry:
+	prev.d_tag = C.DT_NULL
+	zeros := make([]byte, len(prev.d_un))
+	copy(prev.d_un[:], zeros)
 }
 
 func (e *elf) str64() (offset, size int) {
