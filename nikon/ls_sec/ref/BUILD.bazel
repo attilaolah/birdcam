@@ -1,4 +1,5 @@
 load("//cmd/patch_so:patch_so.bzl", "patched_so")
+load("//nikon/ls_sec/ref:version_script.bzl", "version_script")
 
 cc_binary(
     name = "x86_64",
@@ -15,11 +16,11 @@ patched_so(
     patch_str = {
         # Match rule name.
         "libLsSec-jni.so": "libls_sec.so",
+        # Replace libc.so with a stub.
+        "libc.so": "libw.so",
     },
-    # Cannot remove libc.so dependency without also removing its version from the map.
     remove_deps = [
         # keep sorted
-        "libc.so",
         "libdl.so",
         "libm.so",
         "libstdc++.so",
@@ -29,5 +30,13 @@ patched_so(
 cc_library(
     name = "w",
     srcs = ["w.cc"],
+    copts = ["-fuse-cxa-atexit"],
+    linkopts = ["-Wl,--version-script=$(location :w_lds)"],
     linkstatic = False,
+    deps = [":w_lds"],
+)
+
+version_script(
+    name = "w_lds",
+    src = "w.lds",
 )
