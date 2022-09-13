@@ -180,8 +180,9 @@ func (cam *A900) Authenticate() error {
 
 	// TODO: Unsubscribe from auth indications!
 
-	// TODO: Store Stage 4 value!
-	_ = stage4
+	if err := cam.ls.GenerateKey(stage4, cameraID); err != nil {
+		return fmt.Errorf("auth error: failed to generate key: %w", err)
+	}
 
 	return nil
 }
