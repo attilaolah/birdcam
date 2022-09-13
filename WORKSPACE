@@ -82,7 +82,7 @@ http_archive(
 http_file(
     name = "snapbridge",
     downloaded_file_path = "com.nikon.snapbridge.cmru-2.9.0.apk",
-    sha256 = "0e7ff5755dba8f15980b19fba20a4d5c59d77113c84cda1ab792750ccc2f5d47",p
+    sha256 = "0e7ff5755dba8f15980b19fba20a4d5c59d77113c84cda1ab792750ccc2f5d47",
     urls = [
         "http://localhost:8000/SnapBridge_v2.9.0.apk",
     ],
