@@ -81,11 +81,10 @@ http_archive(
 
 http_file(
     name = "snapbridge",
-    downloaded_file_path = "com.nikon.snapbridge.cmru-2.8.3.apk",
-    sha256 = "c0a3ce59c029cfd5f932486f63a05ed5cdd36728ac5ceac6197e595cd635bc8d",
+    downloaded_file_path = "com.nikon.snapbridge.cmru-2.9.0.apk",
+    sha256 = "0e7ff5755dba8f15980b19fba20a4d5c59d77113c84cda1ab792750ccc2f5d47",p
     urls = [
-        "https://cloudflare-ipfs.com/ipfs/QmczKJCUZN54WEYxJcxtMnUniz4zzdgAizmoUCEiyupj1U",
-        "https://gateway.pinata.cloud/ipfs/QmczKJCUZN54WEYxJcxtMnUniz4zzdgAizmoUCEiyupj1U",
+        "http://localhost:8000/SnapBridge_v2.9.0.apk",
     ],
 )
 
