@@ -1,0 +1,14 @@
+cc_library(
+    name = "init",
+    hdrs = ["init.h"],
+    srcs = ["init.c"],
+)
+
+cc_test(
+    name = "init_test",
+    srcs = ["init_test.cc"],
+    deps = [
+        ":init",
+        "@com_google_googletest//:gtest_main",
+    ],
+)

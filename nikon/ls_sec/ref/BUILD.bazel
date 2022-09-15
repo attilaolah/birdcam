@@ -1,6 +1,21 @@
 load("//cmd/patch_so:patch_so.bzl", "patched_so")
 load("//nikon/ls_sec/ref:version_script.bzl", "version_script")
 
+cc_library(
+    name = "ref",
+    hdrs = ["ref.h"],
+    srcs = ["ref.cc"],
+)
+
+cc_test(
+    name = "ref_test",
+    srcs = ["ref_test.cc"],
+    deps = [
+        ":ref",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
 cc_binary(
     name = "x86_64",
     srcs = [
