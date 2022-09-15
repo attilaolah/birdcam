@@ -8,6 +8,8 @@ cc_library(
         "-Wno-ignored-attributes",
         "-Wno-incompatible-pointer-types",
         "-Wno-int-conversion",
+        "-Wno-pointer-sign",
+        "-Wno-pointer-to-int-cast",
     ],
     deps = [
         "@hexray_tools//:defs",
