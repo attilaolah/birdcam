@@ -19,6 +19,7 @@ cc_test(
     srcs = ["ref_test.cc"],
     deps = [
         ":ref",
+        "//nikon/ls_sec",
         "@com_google_googletest//:gtest_main",
     ],
 )

@@ -3,6 +3,7 @@ cc_library(
     srcs = ["ls_sec.cc"],
     hdrs = ["ls_sec.h"],
     deps = [":entangle"],
+    visibility = ["//nikon/ls_sec/ref:__pkg__"],
 )
 
 cc_test(

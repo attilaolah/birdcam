@@ -70,7 +70,7 @@ uint64_t LsSec::stage_1() {
   }
   stage_ = Stage::STAGE_3;
 
-  return urand64();
+  return __bswap_64(urand64());
 }
 
 std::pair<uint64_t, uint64_t> LsSec::stage_2(uint64_t stage_1) {

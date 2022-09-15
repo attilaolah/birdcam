@@ -11,17 +11,23 @@
 #include <cstdint>
 #include <vector>
 
-extern "C" {
-int64_t LsSecInit(uint8_t *a1, int64_t a2);
-int64_t LsSec1stStage(int64_t a1, int64_t a2);
-}
+#include "../ls_sec.h"
 
 #include "gtest/gtest.h"
 
-namespace ls_sec::ref {
+
+extern "C" {
+int64_t LsSecInit(uint8_t *a1, uint64_t a2);
+int64_t LsSec1stStage(uint8_t *a1, uint64_t *a2);
+}
+
+namespace ls_sec {
 namespace {
 
-TEST(LsSec, LsSec) {
+constexpr uint64_t kOk = 0;
+constexpr uint64_t kWrongStage = std::numeric_limits<uint32_t>::max() - 102;
+
+TEST(LsSec, Init) {
   std::vector<uint8_t> buf(8408);
 
   srand(1);
@@ -32,15 +38,39 @@ TEST(LsSec, LsSec) {
   LsSecInit(&buf[0], 0);
 
   EXPECT_EQ(rand(), rand_1);
-
   for (const uint8_t& b : buf) {
     EXPECT_EQ(b, (&b - &buf[0] == 8400) ? 1 : 0);
   }
 
   // RNG is reset:
   LsSecInit(&buf[0], 1);
+
   EXPECT_EQ(rand(), rand_1);
+  for (const uint8_t& b : buf) {
+    EXPECT_EQ(b, (&b - &buf[0] == 8400) ? 1 : 0);
+  }
+}
+
+TEST(LsSec, Stage1) {
+  uint64_t res;
+  std::vector<uint8_t> buf(8408);
+
+  EXPECT_EQ(LsSec1stStage(&buf[0], &res), kWrongStage);
+
+  constexpr uint64_t seed = 1;
+  constexpr uint64_t stage_1 = 14277390700105796459ULL;
+
+  LsSecInit(&buf[0], seed);
+  EXPECT_EQ(LsSec1stStage(&buf[0], &res), kOk);
+  EXPECT_EQ(res, stage_1);
+
+  LsSec ls_sec(seed);
+  EXPECT_EQ(ls_sec.stage_1(), stage_1);
+
+  for (const uint8_t& b : buf) {
+    EXPECT_EQ(b, (&b - &buf[0] == 8400) ? 3 : 0);
+  }
 }
 
 } // namespace
-} // namespace ls_sec::ref
+} // namespace ls_sec
