@@ -3,8 +3,15 @@ load("//nikon/ls_sec/ref:version_script.bzl", "version_script")
 
 cc_library(
     name = "ref",
-    hdrs = ["ref.h"],
-    srcs = ["ref.cc"],
+    srcs = ["ref.c"],
+    copts = [
+        "-Wno-ignored-attributes",
+        "-Wno-incompatible-pointer-types",
+        "-Wno-int-conversion",
+    ],
+    deps = [
+        "@hexray_tools//:defs",
+    ],
 )
 
 cc_test(

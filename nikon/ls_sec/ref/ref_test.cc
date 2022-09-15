@@ -11,7 +11,10 @@
 #include <cstdint>
 #include <vector>
 
-#include "ref.h"
+extern "C" {
+int64_t LsSecInit(uint8_t *a1, int64_t a2);
+int64_t LsSec1stStage(int64_t a1, int64_t a2);
+}
 
 #include "gtest/gtest.h"
 
