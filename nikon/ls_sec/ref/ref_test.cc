@@ -20,11 +20,23 @@ namespace {
 
 TEST(LsSec, LsSec) {
   std::vector<uint8_t> buf(8408);
+
+  srand(1);
+  uint64_t rand_1 = rand();
+
+  srand(1);
+  // RNG is not touched:
   LsSecInit(&buf[0], 0);
+
+  EXPECT_EQ(rand(), rand_1);
 
   for (const uint8_t& b : buf) {
     EXPECT_EQ(b, (&b - &buf[0] == 8400) ? 1 : 0);
   }
+
+  // RNG is reset:
+  LsSecInit(&buf[0], 1);
+  EXPECT_EQ(rand(), rand_1);
 }
 
 } // namespace
