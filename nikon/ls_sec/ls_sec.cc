@@ -11,7 +11,9 @@ namespace {
 // Alignment for encoding/decoding.
 constexpr size_t kAlign = sizeof(uint64_t) / sizeof(uint8_t);
 
-uint64_t urand64() { return ((uint64_t)rand() << 32) | rand(); }
+uint64_t urand64() {
+  return __bswap_64(((uint64_t)rand() << 32) | rand());
+}
 
 void populate_key(KeyMaterial &key, uint64_t seed) {
   for (size_t i = 0; i < key.header.size(); i++) {
@@ -70,7 +72,7 @@ uint64_t LsSec::stage_1() {
   }
   stage_ = Stage::STAGE_3;
 
-  return __bswap_64(urand64());
+  return urand64();
 }
 
 std::pair<uint64_t, uint64_t> LsSec::stage_2(uint64_t stage_1) {

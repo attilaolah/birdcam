@@ -1,5 +1,6 @@
 #include "entangle.h"
 
+#include <cstdio>  // printf()
 #include <cstdlib>
 #include <limits>
 
@@ -44,12 +45,16 @@ void untangle_2(const KeyMaterial &key, uint32_t *a, uint32_t *b) noexcept {
 }
 
 uint64_t entangle(const std::vector<uint64_t> &elements) noexcept {
-  uint32_t x = 0x1020304;
-  uint32_t y = 0x5060708;
+  uint32_t x0 = 0x1020304;
+  uint32_t y0 = 0x5060708;
 
+  uint32_t x, y;
   for (const uint64_t &elem : elements) {
+    printf("entangle 1. (%#016lx, %#016x, %#016x)\n", elem, x, y);
+    //x = __bswap_32(elem & std::numeric_limits<uint32_t>::max()) ^ x;
     x = __bswap_32(elem & std::numeric_limits<uint32_t>::max()) ^ x;
     y = __bswap_32(elem >> 32) ^ y;
+    printf("entangle 2. (%#016lx, %#016x, %#016x)\n", elem, x, y);
     entangle_2(kKeyMaterial1, &x, &y);
   }
 

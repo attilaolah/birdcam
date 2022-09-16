@@ -19,6 +19,7 @@
 extern "C" {
 int64_t LsSecInit(uint8_t *a1, uint64_t a2);
 int64_t LsSec1stStage(uint8_t *a1, uint64_t *a2);
+int64_t LsSec2ndStage(uint8_t *a1, uint64_t *a2, uint64_t *a3, uint64_t *a4);
 }
 
 namespace ls_sec {
@@ -26,6 +27,10 @@ namespace {
 
 constexpr uint64_t kOk = 0;
 constexpr uint64_t kWrongStage = std::numeric_limits<uint32_t>::max() - 102;
+
+constexpr uint64_t kSeed = 1;
+constexpr uint64_t kStage1 = 14277390700105796459ULL;
+constexpr uint64_t kStage2 = 14486366436481708883ULL;
 
 TEST(LsSec, Init) {
   std::vector<uint8_t> buf(8408);
@@ -57,19 +62,48 @@ TEST(LsSec, Stage1) {
 
   EXPECT_EQ(LsSec1stStage(&buf[0], &res), kWrongStage);
 
-  constexpr uint64_t seed = 1;
-  constexpr uint64_t stage_1 = 14277390700105796459ULL;
-
-  LsSecInit(&buf[0], seed);
+  LsSecInit(&buf[0], kSeed);
   EXPECT_EQ(LsSec1stStage(&buf[0], &res), kOk);
-  EXPECT_EQ(res, stage_1);
+  EXPECT_EQ(res, kStage1);
 
-  LsSec ls_sec(seed);
-  EXPECT_EQ(ls_sec.stage_1(), stage_1);
+  LsSec ls_sec(kSeed);
+  EXPECT_EQ(ls_sec.stage_1(), kStage1);
 
   for (const uint8_t& b : buf) {
     EXPECT_EQ(b, (&b - &buf[0] == 8400) ? 3 : 0);
   }
+}
+
+TEST(LsSec, Stage2) {
+  std::pair<uint64_t, uint64_t> res;
+  std::vector<uint8_t> buf(8408);
+
+  uint64_t stage_1 = kStage1;
+  EXPECT_EQ(LsSec2ndStage(&buf[0], &stage_1, &res.first, &res.second), kWrongStage);
+  EXPECT_EQ(stage_1, kStage1);
+
+  LsSecInit(&buf[0], kSeed);
+  EXPECT_EQ(LsSec2ndStage(&buf[0], &stage_1, &res.first, &res.second), kOk);
+  EXPECT_EQ(stage_1, kStage1);
+
+  EXPECT_EQ(res.first, kStage1);
+  EXPECT_EQ(res.second, kStage2);
+
+  LsSec ls_sec(kSeed);
+  const std::pair<uint64_t, uint64_t> stage_2 = ls_sec.stage_2(kStage1);
+  EXPECT_EQ(stage_2.first, kStage1);
+  EXPECT_EQ(stage_2.second, kStage2);
+
+  // index_
+  const uint8_t index = 1;
+  EXPECT_EQ(buf[0], index);
+  // EXPECT_EQ(ls_sec.index_, index); // private
+
+  const uint64_t secret = 7441507252709985025ULL;
+  EXPECT_EQ(ls_sec.secret_, secret);
+  EXPECT_EQ(*reinterpret_cast<uint64_t*>(&buf[0]), secret);
+
+  EXPECT_EQ(buf[8400], 2);
 }
 
 } // namespace

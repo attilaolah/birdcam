@@ -32,7 +32,7 @@ public:
 
   std::vector<uint8_t> decode(const std::vector<uint8_t> &data) const;
 
-private:
+//private:
   const uint64_t hash_3(const uint64_t a, const uint64_t b) const;
 
   void set_secret(const uint64_t nonce, const uint64_t stage_1);
