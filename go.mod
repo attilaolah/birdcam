@@ -20,5 +20,5 @@ require (
 	github.com/muka/go-bluetooth v0.0.0-20210812063148-b6c83362e27d // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/sirupsen/logrus v1.6.0 // indirect
-	golang.org/x/sys v0.0.0-20211204120058-94396e421777 // indirect
+	golang.org/x/sys v0.1.0 // indirect
 )
