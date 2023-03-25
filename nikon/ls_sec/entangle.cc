@@ -48,7 +48,7 @@ uint64_t entangle(const std::vector<uint64_t> &elements) noexcept {
   uint32_t x0 = 0x1020304;
   uint32_t y0 = 0x5060708;
 
-  uint32_t x, y;
+  uint32_t x = x0, y = y0;
   for (const uint64_t &elem : elements) {
     printf("entangle 1. (%#016lx, %#016x, %#016x)\n", elem, x, y);
     //x = __bswap_32(elem & std::numeric_limits<uint32_t>::max()) ^ x;
