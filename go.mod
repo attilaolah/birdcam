@@ -1,6 +1,6 @@
 module github.com/attilaolah/birdcam
 
-go 1.17
+go 1.20
 
 require (
 	github.com/go-ble/ble v0.0.0-20230130210458-dd4b07d15402
